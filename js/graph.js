@@ -30,19 +30,14 @@ var width = +svg.attr('width');
 var height = +svg.attr('height');
 
 var colorScale = d3.scaleOrdinal(d3.schemeTableau10);
-var linkScale = d3.scaleLinear().range([1,3]);
+var linkScale = d3.scaleLinear().range([3,3]);
+var linkColorScale = d3.scaleSequentialSqrt(d3.interpolateBlues);
 var selectedNode;
 
 let committees = new Map()
-<<<<<<< HEAD
 d3.dsv("|", '/data/mini_dataset/committees/cm18.txt').then(function(dataset) {
   //console.log("committee")
   //console.log(dataset)
-=======
-d3.dsv("|", '../data/mini_dataset/committee/cm20.txt').then(function(dataset) {
-  console.log("committee")
-  console.log(dataset)
->>>>>>> 9ef14d9bd80e577f9fae5498a4915f661a989b37
 
   dataset.forEach((item, i) => {
     committees.set(item.CMTE_ID, item)
@@ -51,15 +46,9 @@ d3.dsv("|", '../data/mini_dataset/committee/cm20.txt').then(function(dataset) {
   console.log(committees)
 })
 let candidates = new Map()
-<<<<<<< HEAD
 d3.dsv("|", '/data/mini_dataset/candidates/cn18.txt').then(function(dataset) {
   //console.log("candidate")
   //console.log(dataset)
-=======
-d3.dsv("|", '../data/mini_dataset/candidate/cn20.txt').then(function(dataset) {
-  console.log("candidate")
-  console.log(dataset)
->>>>>>> 9ef14d9bd80e577f9fae5498a4915f661a989b37
 
   dataset.forEach((item, i) => {
     candidates.set(item.CAND_ID, item)
@@ -87,13 +76,13 @@ var markers = svg.append('defs').append('marker')
             'refX':13,
             'refY':0,
             'orient':'auto',
-            'markerWidth':15,
-            'markerHeight':15,
+            'markerWidth':10,
+            'markerHeight':10,
             'markerUnits':"userSpaceOnUse",
             'xoverflow':'visible'})
         .append('svg:path')
         .attr('d', 'M 0,-5 L 8 ,0 L 0,5')
-        .attr('fill', '#999')
+        .attr('fill', "#999")
         .attr('stroke-width', 5)
         .style('stroke','none');
 
@@ -131,39 +120,6 @@ function includedLinks() {
     }
   })
   return testLinks
-
-
-  //links = links.slice(0,100)
-  links.forEach(link => {
-    link.source.type = "far"
-    link.target.type = "far"
-    link.type = "far"
-  })
-
-  var newLinks = immediateLinks()
-  var newerLinks = [...newLinks];
-  links.forEach(link => {
-    // Ignore included links
-    if (link.source === selectedNode || link.target === selectedNode) {
-      return;
-    }
-    var containsSource = newLinks.some(otherLink => otherLink.source === link.source ||
-                                                    otherLink.target === link.source)
-    var containsTarget = newLinks.some(otherLink => otherLink.source === link.target ||
-                                                    otherLink.target === link.target)
-    if (containsSource || containsTarget) {
-      link.type = "far"
-      newerLinks.push(link)
-    }
-  })
-  console.log(newerLinks)
-  newerLinks.unshift({
-    "source": dummy1,
-    "target": dummy1,
-    "value": 1000,
-    "type": "dummy"
-  })
-  return newerLinks;
 }
 
 function immediateLinks() {
@@ -174,26 +130,13 @@ function immediateLinks() {
     link.source.type = "close"
     link.target.type = "close"
   });
+  testLinks.unshift({
+    "source": dummy1,
+    "target": dummy1,
+    "value": 1000,
+    "type": "dummy"
+  })
   return testLinks
-
-  console.log(links)
-
-  links.forEach(link => {
-    link.source.type = "far"
-    link.target.type = "far"
-    link.type = "far"
-  })
-
-  var newLinks = []
-  links.forEach(link => {
-    if (link.source === selectedNode || link.target === selectedNode) {
-      link.type = "close"
-      link.source.type = "close"
-      link.target.type = "close"
-      newLinks.push(link)
-    }
-  })
-  return newLinks;
 }
 
 function extractNodes(links) {
@@ -244,12 +187,8 @@ var link_tip = d3.tip()
 svg.call(link_tip);
 
 //TODO fix selected node at center
-<<<<<<< HEAD
 d3.dsv("|", '/data/mini_dataset/transactions/agg_cm_trans/cm_trans18.txt').then(function(dataset) {
     //dataset = dataset.slice(0,10)
-=======
-d3.dsv("|", '../data/mini_dataset/transactions/cm_trans/cm_trans20.txt').then(function(dataset) {
->>>>>>> 9ef14d9bd80e577f9fae5498a4915f661a989b37
     //console.log(dataset)
 
     network = {"links": [], "nodes": []}
@@ -328,7 +267,7 @@ d3.dsv("|", '../data/mini_dataset/transactions/cm_trans/cm_trans20.txt').then(fu
           if (d.type === "dummy") {
             return 0;
           }
-          return d === selectedNode ? -2000 : -30;
+          return d === selectedNode ? -100 : -30;
         }))
         .force('center', d3.forceCenter(width / 2, height / 2))
         .force('collide', d3.forceCollide(25).radius(function(d, i) {
@@ -349,6 +288,7 @@ d3.dsv("|", '../data/mini_dataset/transactions/cm_trans/cm_trans20.txt').then(fu
 
 function updateVisualization() {
     linkScale.domain(d3.extent(immediateLinks().slice(1), function(d){ return d.value;}));
+    linkColorScale.domain(d3.extent(immediateLinks().slice(1), function(d){ return d.value;}));
 
     var links = linkG.selectAll('.link')
       .data(immediateLinks(), function(d){
@@ -393,14 +333,18 @@ function updateVisualization() {
     .attr('stroke-width', function(d) {
         return linkScale(d.value);
     })
+    .style('stroke', function(d) {
+        return linkColorScale(d.value);
+    })
     .attr('opacity', function(link) {
-      if (link.type == "dummy") {
+      if (link.type === "dummy") {
         return 0;
-      } else if (link.type == "close") {
+      } else if (link.type === "close") {
         return 0.8;
-      } else if (link.type == "far") {
+      } else if (link.type === "far") {
         return 0.1;
-      }    });
+      }
+    });
 
     linkEnter.attr('marker-end','url(#arrowhead)')
 
@@ -412,11 +356,11 @@ function updateVisualization() {
     })
     //.attr('fill', "url(#image)")
     .attr('opacity', function(node) {
-      if (node.type == "dummy") {
+      if (node.type === "dummy") {
         return 0;
-      } else if (node.type == "close") {
+      } else if (node.type === "close") {
         return 1.0;
-      } else if (node.type == "far") {
+      } else if (node.type === "far") {
         return 0.1;
       }
     })
