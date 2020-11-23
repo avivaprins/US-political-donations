@@ -1,9 +1,14 @@
 console.log("Loaded graph.js script")
 
 var allNodes = new Map()
+var allLinks = new Map()
 var nodeGraph = new Map()
 var linkGraph = new Map()
 
+let demParties = new Set(["DEM", "DNL", "DFL", "LBL", "NDP", "THD", "PRO", "PPD"])
+let repParties = new Set(["REP", "CRV", "NJC"])
+console.log(demParties)
+console.log(repParties)
 Array.prototype.binarySearch = function (target, comparator) {
     var l = 0,
         h = this.length - 1,
@@ -81,8 +86,9 @@ var markers = svg.append('defs').append('marker')
             'xoverflow':'visible'})
         .append('svg:path')
         .attr('d', 'M 0,-5 L 8 ,0 L 0,5')
-        .attr('fill', "#999")
+        .attr('fill', "#555")
         .attr('stroke-width', 5)
+        .attr('opacity', 0.5)
         .style('stroke','none');
 
 
@@ -194,13 +200,13 @@ d3.dsv("|", '/data/mini_dataset/transactions/agg_cm_trans/cm_trans18.txt').then(
     var k = 0
     for (i in dataset) {
       d = dataset[i]
+      //console.log(d)
       if(i === "columns") {
         break;
       }
-      if (d.TARGET_ID === undefined || d.SRC_ID === undefined) {
+      if (d.TARGET_ID === undefined || d.SRC_ID === undefined || d.SUM === undefined || d.SUM <= 0) {
         continue;
       }
-
       node1 = allNodes.get(d.SRC_ID)
       if (node1 === undefined) {
         var group = 0;
@@ -238,13 +244,31 @@ d3.dsv("|", '/data/mini_dataset/transactions/agg_cm_trans/cm_trans18.txt').then(
       nodeGraph.get(d.SRC_ID).add(d.TARGET_ID)
       nodeGraph.get(d.TARGET_ID).add(d.SRC_ID)
 
-      link = {
-        "source": node1,
-        "target": node2,
-        "value": d.SUM,
+      let value = d.SUM
+      var link = allLinks.get(d.SRC_ID + "-" + d.TARGET_ID)
+      if (link === undefined) {
+        link = {
+            "source": node1,
+            "target": node2,
+            "value": value,
+        }
+        allLinks.set(d.SRC_ID + "-" + d.TARGET_ID, link)
+      } else {
+        link.value += value;
+        continue;
       }
+
+
       linkGraph.get(d.TARGET_ID).add(link)
       linkGraph.get(d.SRC_ID).add(link)
+      // function equalLinks(a, b) {
+      //   return a.source === b.source && a.target === b.target;
+      // }
+      // if (network["links"].some(l => equalLinks(l, link))) {
+      //   console.log("duplicate")
+      // } else {
+      //   console.log("no duplicate")
+      // }
       network["links"].push(link)
       //console.log("1")
     }
@@ -266,7 +290,7 @@ d3.dsv("|", '/data/mini_dataset/transactions/agg_cm_trans/cm_trans18.txt').then(
           if (d.type === "dummy") {
             return 0;
           }
-          return d === selectedNode ? -100 : -30;
+          return d === selectedNode ? -50 : -15;
         }))
         .force('center', d3.forceCenter(width / 2, height / 2))
         .force('collide', d3.forceCollide(25).radius(function(d, i) {
@@ -287,7 +311,13 @@ d3.dsv("|", '/data/mini_dataset/transactions/agg_cm_trans/cm_trans18.txt').then(
 
 function updateVisualization() {
     linkScale.domain(d3.extent(immediateLinks().slice(1), function(d){ return d.value;}));
-    linkColorScale.domain(d3.extent(immediateLinks().slice(1), function(d){ return d.value;}));
+    var extent = d3.extent(immediateLinks().slice(1), function(d){ return parseFloat(d.value);});
+    console.log(immediateLinks())
+    console.log(extent)
+    extent[0] = 0;
+    console.log(extent)
+
+    linkColorScale.domain(extent);
 
     var links = linkG.selectAll('.link')
       .data(immediateLinks(), function(d){
@@ -352,19 +382,19 @@ function updateVisualization() {
     .attr('r', 8)
     .style('fill', function(d) {
         if (committees.has(d.id)) {
-          let party = allNodes.get(d.id).CMTE_PTY_AFFILIATION
-          if (party === "DEM") {
+          let party = committees.get(d.id).CMTE_PTY_AFFILIATION
+          if (demParties.has(party)) {
             return "#0380fc"
-          } else if (party === "REP") {
+          } else if (repParties.has(party)) {
             return "#fc0303"
           } else {
             return "#a103fc"
           }
         } else if (candidates.has(d.id)) {
-          let party = allNodes.get(d.id).CAND_PTY_AFFILIATION
-          if (party === "DEM") {
+          let party = candidates.get(d.id).CAND_PTY_AFFILIATION
+          if (demParties.has(party)) {
             return "#80c0ff"
-          } else if (party === "REP") {
+          } else if (repParties.has(party)) {
             return "#ff8080"
           } else {
             return "#d080ff"
