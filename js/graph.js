@@ -1,6 +1,6 @@
 console.log("Loaded graph.js script")
 
-var nodes = new Map()
+var allNodes = new Map()
 var nodeGraph = new Map()
 var linkGraph = new Map()
 
@@ -29,9 +29,8 @@ var svg = d3.select('svg');
 var width = +svg.attr('width');
 var height = +svg.attr('height');
 
-var colorScale = d3.scaleOrdinal(d3.schemeTableau10);
 var linkScale = d3.scaleLinear().range([3,3]);
-var linkColorScale = d3.scaleSequentialSqrt(d3.interpolateBlues);
+var linkColorScale = d3.scaleSequentialSqrt(d3.interpolateGreys);
 var selectedNode;
 
 let committees = new Map()
@@ -140,12 +139,12 @@ function immediateLinks() {
 }
 
 function extractNodes(links) {
-  var nodes = new Set();
+  var exNodes = new Set();
   links.forEach(link => {
-    nodes.add(link.source)
-    nodes.add(link.target)
+    exNodes.add(link.source)
+    exNodes.add(link.target)
   })
-  return Array.from(nodes);
+  return Array.from(exNodes);
 }
 console.log(width)
 console.log(height)
@@ -202,7 +201,7 @@ d3.dsv("|", '/data/mini_dataset/transactions/agg_cm_trans/cm_trans18.txt').then(
         continue;
       }
 
-      node1 = nodes.get(d.SRC_ID)
+      node1 = allNodes.get(d.SRC_ID)
       if (node1 === undefined) {
         var group = 0;
         if (committees.has(d.SRC_ID)) {
@@ -214,12 +213,12 @@ d3.dsv("|", '/data/mini_dataset/transactions/agg_cm_trans/cm_trans18.txt').then(
           "id": d.SRC_ID,
           "group": group,
         }
-        nodes.set(d.SRC_ID, node1)
+        allNodes.set(d.SRC_ID, node1)
         network["nodes"].push(node1)
         nodeGraph.set(d.SRC_ID, new Set())
         linkGraph.set(d.SRC_ID, new Set())
       }
-      node2 = nodes.get(d.TARGET_ID)
+      node2 = allNodes.get(d.TARGET_ID)
       if (node2 === undefined) {
         var group = 0;
         if (committees.has(d.TARGET_ID)) {
@@ -231,7 +230,7 @@ d3.dsv("|", '/data/mini_dataset/transactions/agg_cm_trans/cm_trans18.txt').then(
           "id": d.TARGET_ID,
           "group": group,
         }
-        nodes.set(d.TARGET_ID, node2)
+        allNodes.set(d.TARGET_ID, node2)
         network["nodes"].push(node2)
         nodeGraph.set(d.TARGET_ID, new Set())
         linkGraph.set(d.TARGET_ID, new Set())
@@ -352,7 +351,26 @@ function updateVisualization() {
     nodes.merge(nodeEnter)
     .attr('r', 8)
     .style('fill', function(d) {
-        return colorScale(d.group);
+        if (committees.has(d.id)) {
+          let party = allNodes.get(d.id).CMTE_PTY_AFFILIATION
+          if (party === "DEM") {
+            return "#0380fc"
+          } else if (party === "REP") {
+            return "#fc0303"
+          } else {
+            return "#a103fc"
+          }
+        } else if (candidates.has(d.id)) {
+          let party = allNodes.get(d.id).CAND_PTY_AFFILIATION
+          if (party === "DEM") {
+            return "#80c0ff"
+          } else if (party === "REP") {
+            return "#ff8080"
+          } else {
+            return "#d080ff"
+          }
+        }
+        return "#80ffa8";
     })
     //.attr('fill', "url(#image)")
     .attr('opacity', function(node) {
