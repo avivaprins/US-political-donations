@@ -34,15 +34,9 @@ var linkScale = d3.scaleLinear().range([1,3]);
 var selectedNode;
 
 let committees = new Map()
-<<<<<<< HEAD
 d3.dsv("|", '/data/mini_dataset/committees/cm18.txt').then(function(dataset) {
-  //console.log("committee")
-  //console.log(dataset)
-=======
-d3.dsv("|", '../data/mini_dataset/committee/cm20.txt').then(function(dataset) {
   console.log("committee")
-  console.log(dataset)
->>>>>>> 9ef14d9bd80e577f9fae5498a4915f661a989b37
+  // console.log(dataset)
 
   dataset.forEach((item, i) => {
     committees.set(item.CMTE_ID, item)
@@ -51,15 +45,9 @@ d3.dsv("|", '../data/mini_dataset/committee/cm20.txt').then(function(dataset) {
   console.log(committees)
 })
 let candidates = new Map()
-<<<<<<< HEAD
 d3.dsv("|", '/data/mini_dataset/candidates/cn18.txt').then(function(dataset) {
-  //console.log("candidate")
-  //console.log(dataset)
-=======
-d3.dsv("|", '../data/mini_dataset/candidate/cn20.txt').then(function(dataset) {
   console.log("candidate")
-  console.log(dataset)
->>>>>>> 9ef14d9bd80e577f9fae5498a4915f661a989b37
+  //console.log(dataset)
 
   dataset.forEach((item, i) => {
     candidates.set(item.CAND_ID, item)
@@ -244,12 +232,8 @@ var link_tip = d3.tip()
 svg.call(link_tip);
 
 //TODO fix selected node at center
-<<<<<<< HEAD
 d3.dsv("|", '/data/mini_dataset/transactions/agg_cm_trans/cm_trans18.txt').then(function(dataset) {
     //dataset = dataset.slice(0,10)
-=======
-d3.dsv("|", '../data/mini_dataset/transactions/cm_trans/cm_trans20.txt').then(function(dataset) {
->>>>>>> 9ef14d9bd80e577f9fae5498a4915f661a989b37
     //console.log(dataset)
 
     network = {"links": [], "nodes": []}
