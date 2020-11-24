@@ -34,7 +34,7 @@ var linkScale = d3.scaleLinear().range([1,3]);
 var selectedNode;
 
 let committees = new Map()
-d3.dsv("|", '/data/mini_dataset/committees/cm18.txt').then(function(dataset) {
+d3.dsv("|", '/data/committees/cm18.txt').then(function(dataset) {
   console.log("committee")
   // console.log(dataset)
 
@@ -45,7 +45,7 @@ d3.dsv("|", '/data/mini_dataset/committees/cm18.txt').then(function(dataset) {
   console.log(committees)
 })
 let candidates = new Map()
-d3.dsv("|", '/data/mini_dataset/candidates/cn18.txt').then(function(dataset) {
+d3.dsv("|", '/data/candidates/cn18.txt').then(function(dataset) {
   console.log("candidate")
   //console.log(dataset)
 
@@ -232,7 +232,7 @@ var link_tip = d3.tip()
 svg.call(link_tip);
 
 //TODO fix selected node at center
-d3.dsv("|", '/data/mini_dataset/transactions/agg_cm_trans/cm_trans18.txt').then(function(dataset) {
+d3.dsv("|", '/data/transactions/agg_cm_trans/cm_trans18.txt').then(function(dataset) {
     //dataset = dataset.slice(0,10)
     //console.log(dataset)
 
