@@ -29,6 +29,9 @@ var svg = d3.select('svg');
 var width = +svg.attr('width');
 var height = +svg.attr('height');
 
+var selector = d3.select('#candidate')
+var selector_1 = d3.select('#committee')
+
 var colorScale = d3.scaleOrdinal(d3.schemeTableau10);
 var linkScale = d3.scaleLinear().range([1,3]);
 var selectedNode;
@@ -37,6 +40,16 @@ let committees = new Map()
 d3.dsv("|", '../data/committees/cm18.txt').then(function(dataset) {
   console.log("committee")
   // console.log(dataset)
+  var opts_1 = selector_1.selectAll('option')
+  .data(dataset)
+  .enter()
+  .append('option')
+  .attr('value', function (d) {
+    return d.CMTE_ID;
+  })
+  .text(function (d) {
+    return d.CMTE_NAME;
+  });
 
   dataset.forEach((item, i) => {
     committees.set(item.CMTE_ID, item)
@@ -48,6 +61,16 @@ let candidates = new Map()
 d3.dsv("|", '../data/candidates/cn18.txt').then(function(dataset) {
   console.log("candidate")
   //console.log(dataset)
+  var opts = selector.selectAll('option')
+    .data(dataset)
+    .enter()
+    .append('option')
+    .attr('value', function (d) {
+      return d.CAND_ID;
+    })
+    .text(function (d) {
+      return d.CAND_NAME;
+    });
 
   dataset.forEach((item, i) => {
     candidates.set(item.CAND_ID, item)
