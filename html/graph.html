@@ -4,11 +4,23 @@
     <meta charset="UTF-8">
     <title>US Political Donations</title>
     <link rel="stylesheet" href="../css/graph.css">
+    <link rel="stylesheet" href="/css/select2.min.css" />
+    <style>
+        .select2-dropdown {top: 22px !important; left: 8px !important;}
+    </style>
 </head>
 <body>
     <div id="main">
         <a href="../index.html">Main Page</a>
         <br>
+        <div>
+            <select id="candidate">
+                <option value="" disabled selected>Select a Candidate</option>
+            </select>
+            <select id="committee">
+                <option value="" disabled selected>Select a Committee</option>
+            </select>
+        </div>
         <svg width="1920" height="1080" style="border: 1px solid #777;">
 
         </svg>
@@ -18,4 +30,15 @@
 <script src="../js/d3-tip.js"></script>
 <script src="https://d3js.org/d3-selection-multi.v1.js"></script>
 <script src="../js/graph.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script src="/js/select2.min.js"></script>
+<script>
+    $("#candidate").select2( {
+        allowClear: true
+        } );
+    $("#committee").select2( {
+        allowClear: true
+        } );
+
+    </script>
 </html>
