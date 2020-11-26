@@ -34,14 +34,27 @@ var svg = d3.select('svg');
 var width = +svg.attr('width');
 var height = +svg.attr('height');
 
-var linkScale = d3.scaleLinear().range([3,3]);
-var linkColorScale = d3.scaleSequentialSqrt(d3.interpolateGreys);
+var selector = d3.select('#candidate')
+var selector_1 = d3.select('#committee')
+
+var colorScale = d3.scaleOrdinal(d3.schemeTableau10);
+var linkScale = d3.scaleLinear().range([1,3]);
 var selectedNode;
 
 let committees = new Map()
-d3.dsv("|", '/data/mini_dataset/committees/cm18.txt').then(function(dataset) {
-  //console.log("committee")
-  //console.log(dataset)
+d3.dsv("|", '../data/committees/cm18.txt').then(function(dataset) {
+  console.log("committee")
+  // console.log(dataset)
+  var opts_1 = selector_1.selectAll('option')
+  .data(dataset)
+  .enter()
+  .append('option')
+  .attr('value', function (d) {
+    return d.CMTE_ID;
+  })
+  .text(function (d) {
+    return d.CMTE_NAME;
+  });
 
   dataset.forEach((item, i) => {
     committees.set(item.CMTE_ID, item)
@@ -50,9 +63,19 @@ d3.dsv("|", '/data/mini_dataset/committees/cm18.txt').then(function(dataset) {
   console.log(committees)
 })
 let candidates = new Map()
-d3.dsv("|", '/data/mini_dataset/candidates/cn18.txt').then(function(dataset) {
-  //console.log("candidate")
+d3.dsv("|", '../data/candidates/cn18.txt').then(function(dataset) {
+  console.log("candidate")
   //console.log(dataset)
+  var opts = selector.selectAll('option')
+    .data(dataset)
+    .enter()
+    .append('option')
+    .attr('value', function (d) {
+      return d.CAND_ID;
+    })
+    .text(function (d) {
+      return d.CAND_NAME;
+    });
 
   dataset.forEach((item, i) => {
     candidates.set(item.CAND_ID, item)
@@ -192,7 +215,7 @@ var link_tip = d3.tip()
 svg.call(link_tip);
 
 //TODO fix selected node at center
-d3.dsv("|", '/data/mini_dataset/transactions/agg_cm_trans/cm_trans18.txt').then(function(dataset) {
+d3.dsv("|", '../data/transactions/agg_cm_trans/cm_trans18.txt').then(function(dataset) {
     //dataset = dataset.slice(0,10)
     //console.log(dataset)
 
