@@ -93,7 +93,7 @@ var markers = svg.append('defs').append('marker')
 
 
 function includedNodes() {
-  var relevantNodes = extractNodes(immediateLinks());
+  var relevantNodes = extractNodes(includedLinks());
   relevantNodes.sort(function(x,y){ return x == selectedNode ? -1 : y == selectedNode ? 1 : 0; });
   //console.log("R");
   relevantNodes.unshift(dummy1)
@@ -204,7 +204,7 @@ d3.dsv("|", '/data/mini_dataset/transactions/agg_cm_trans/cm_trans18.txt').then(
       if(i === "columns") {
         break;
       }
-      if (d.TARGET_ID === undefined || d.SRC_ID === undefined || d.SUM === undefined || d.SUM <= 0) {
+      if (d.TARGET_ID === undefined || d.SRC_ID === undefined || d.SUM === undefined || isNaN(parseFloat(d.SUM)) || parseFloat(d.SUM) <= 0) {
         continue;
       }
       node1 = allNodes.get(d.SRC_ID)
@@ -218,12 +218,14 @@ d3.dsv("|", '/data/mini_dataset/transactions/agg_cm_trans/cm_trans18.txt').then(
         node1 = {
           "id": d.SRC_ID,
           "group": group,
+          "freq": 0
         }
         allNodes.set(d.SRC_ID, node1)
         network["nodes"].push(node1)
         nodeGraph.set(d.SRC_ID, new Set())
         linkGraph.set(d.SRC_ID, new Set())
       }
+      node1.freq+=1
       node2 = allNodes.get(d.TARGET_ID)
       if (node2 === undefined) {
         var group = 0;
@@ -235,16 +237,18 @@ d3.dsv("|", '/data/mini_dataset/transactions/agg_cm_trans/cm_trans18.txt').then(
         node2 = {
           "id": d.TARGET_ID,
           "group": group,
+          "freq": 0
         }
         allNodes.set(d.TARGET_ID, node2)
         network["nodes"].push(node2)
         nodeGraph.set(d.TARGET_ID, new Set())
         linkGraph.set(d.TARGET_ID, new Set())
       }
+      node2.freq+=1
       nodeGraph.get(d.SRC_ID).add(d.TARGET_ID)
       nodeGraph.get(d.TARGET_ID).add(d.SRC_ID)
 
-      let value = d.SUM
+      let value = parseFloat(d.SUM)
       var link = allLinks.get(d.SRC_ID + "-" + d.TARGET_ID)
       if (link === undefined) {
         link = {
@@ -272,6 +276,24 @@ d3.dsv("|", '/data/mini_dataset/transactions/agg_cm_trans/cm_trans18.txt').then(
       network["links"].push(link)
       //console.log("1")
     }
+    let maxConnections = 10
+    linkGraph.forEach((item, i) => {
+      if (item.size > maxConnections) {
+        itemArray = Array.from(item)
+        itemArray.sort()
+        removedItems = itemArray.slice(maxConnections)
+        removedItems.forEach((node, j) => {
+          node.freq -= 1
+          if (node.freq <= 0) {
+            allNodes.delete(j)
+            //nodeGraph.delete(j)
+          }
+        });
+
+        linkGraph.set(i, itemArray.slice(0,maxConnections))
+      }
+    });
+
     console.log("done loading")
     console.log(network)
     console.log(linkGraph)
@@ -320,7 +342,7 @@ function updateVisualization() {
     linkColorScale.domain(extent);
 
     var links = linkG.selectAll('.link')
-      .data(immediateLinks(), function(d){
+      .data(includedLinks(), function(d){
             return d.id;
         })
 
@@ -360,7 +382,7 @@ function updateVisualization() {
 
     links.merge(linkEnter)
     .attr('stroke-width', function(d) {
-        return linkScale(d.value);
+        return 3;
     })
     .style('stroke', function(d) {
         return linkColorScale(d.value);
@@ -442,7 +464,7 @@ function updateVisualization() {
 
     simulation
         .force('link')
-        .links(immediateLinks().slice(1));
+        .links(includedLinks().slice(1));
 
     nodeEnter.on('mouseover', node_tip.show)
       .on('mouseout', node_tip.hide);
