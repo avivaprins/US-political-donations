@@ -130,8 +130,8 @@ var markers = svg.append('defs').append('marker')
             'refX':13,
             'refY':0,
             'orient':'auto',
-            'markerWidth':10,
-            'markerHeight':10,
+            'markerWidth':15,
+            'markerHeight':15,
             'markerUnits':"userSpaceOnUse",
             'xoverflow':'visible'})
         .append('svg:path')
@@ -513,7 +513,13 @@ function updateVisualization() {
 
 
     nodes.merge(nodeEnter)
-    .attr('r', 8)
+    .attr('r', function(d) {
+      if (d === selectedNode) {
+        return 12;
+      } else {
+        return 6
+      }
+    })
     .style('fill', function(d) {
         if (committees.has(d.id)) {
           let party = committees.get(d.id).CMTE_PTY_AFFILIATION
