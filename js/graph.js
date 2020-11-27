@@ -47,16 +47,7 @@ let committees = new Map()
 d3.dsv("|", '../data/committees/cm18.txt').then(function(dataset) {
   console.log("committee")
   // console.log(dataset)
-  var opts_1 = selector_1.selectAll('option')
-  .data(dataset)
-  .enter()
-  .append('option')
-  .attr('value', function (d) {
-    return d.CMTE_ID;
-  })
-  .text(function (d) {
-    return d.CMTE_NAME;
-  });
+
 
   dataset.forEach((item, i) => {
     committees.set(item.CMTE_ID, item)
@@ -68,16 +59,6 @@ let candidates = new Map()
 d3.dsv("|", '../data/candidates/cn18.txt').then(function(dataset) {
   console.log("candidate")
   //console.log(dataset)
-  var opts = selector.selectAll('option')
-    .data(dataset)
-    .enter()
-    .append('option')
-    .attr('value', function (d) {
-      return d.CAND_ID;
-    })
-    .text(function (d) {
-      return d.CAND_NAME;
-    });
 
   dataset.forEach((item, i) => {
     candidates.set(item.CAND_ID, item)
@@ -127,15 +108,30 @@ function includedNodes() {
   return relevantNodes;
 }
 
+function sortLinks (a, b) {
+  if (a.value < b.value) {
+    return -1;
+  } else if (a.value > b.value) {
+    return 1;
+  } else {
+    return 0;
+  }
+}
+
+const maximumConnections = 30
+
 function includedLinks() {
   //console.log(Array.from(linkGraph).some(link => link.source === undefined || link.target === undefined))
   console.log(nodeGraph)
-  var testNodes = Array.from(nodeGraph.get(selectedNode.id))
   var testLinks = immediateLinks()
+  var testNodes = extractNodes(testLinks)
   var farLinks = []
   testNodes.forEach(node => {
+    console.log(node)
     if (node != selectedNode) {
-      farLinks = farLinks.concat(Array.from(linkGraph.get(node)))
+      var connectedLinks = Array.from(linkGraph.get(node.id))
+      connectedLinks.sort(sortLinks)
+      farLinks = farLinks.concat(connectedLinks.slice(Math.max(connectedLinks.length - maximumConnections, 0)))
     }
   });
   farLinks.forEach(link => {
@@ -168,8 +164,8 @@ function immediateLinks() {
     link.source.type = "close"
     link.target.type = "close"
   });
-
-  return testLinks
+  testLinks.sort(sortLinks)
+  return testLinks.slice(Math.max(testLinks.length - maximumConnections, 0))
 }
 
 function extractNodes(links) {
@@ -218,6 +214,37 @@ var link_tip = d3.tip()
         })
         return formatter.format(d.value)});
 svg.call(link_tip);
+
+function addToSelect(id) {
+  console.log(i)
+  if (candidates.has(i)) {
+    const d = candidates.get(i)
+    var opts = selector.selectAll('option')
+      .data(dataset)
+      .enter()
+      .append('option')
+      .attr('value', function (d) {
+        return d.CAND_ID;
+      })
+      .text(function (d) {
+        return d.CAND_NAME;
+      });
+  } else if (committees.has(i)) {
+    const d = committees.get(i)
+    var opts_1 = selector_1.selectAll('option')
+    .data(dataset)
+    .enter()
+    .append('option')
+    .attr('value', function (d) {
+      return d.CMTE_ID;
+    })
+    .text(function (d) {
+      return d.CMTE_NAME;
+    });
+  } else {
+    return i;
+  }
+}
 
 //TODO fix selected node at center
 d3.dsv("|", '../data/transactions/agg_cm_trans/cm_trans18.txt').then(function(dataset) {
@@ -304,23 +331,36 @@ d3.dsv("|", '../data/transactions/agg_cm_trans/cm_trans18.txt').then(function(da
       network["links"].push(link)
       //console.log("1")
     }
-    let maxConnections = 10
-    linkGraph.forEach((item, i) => {
-      if (item.size > maxConnections) {
-        itemArray = Array.from(item)
-        itemArray.sort()
-        removedItems = itemArray.slice(maxConnections)
-        removedItems.forEach((node, j) => {
-          node.freq -= 1
-          if (node.freq <= 0) {
-            allNodes.delete(j)
-            //nodeGraph.delete(j)
-          }
-        });
 
-        linkGraph.set(i, itemArray.slice(0,maxConnections))
-      }
-    });
+
+    var opts = selector.selectAll('option')
+      .data(Array.from(allNodes))
+      .enter()
+      .append('option')
+      .attr('value', function (d) {
+        d = d[0]
+        if (candidates.has(d)) {
+          var cand = candidates.get(d)
+          return cand.CAND_ID;
+        } else if (committees.has(d)) {
+          var comm = committees.get(d)
+          return comm.CMTE_ID;
+        } else {
+          return d
+        }
+      })
+      .text(function (d) {
+        d = d[0]
+        if (candidates.has(d)) {
+          var cand = candidates.get(d)
+          return cand.CAND_NAME;
+        } else if (committees.has(d)) {
+          var comm = committees.get(d)
+          return comm.CMTE_NAME;
+        } else {
+          return d;
+        }
+      });
 
     console.log("done loading")
     console.log(network)
@@ -541,7 +581,15 @@ function selectNode(d) {
 }
 
 function selectCandidate(d) {
+  console.log(allNodes)
   console.log(d)
+  var select = document.getElementById("candidate")
+  var element = select.options[select.selectedIndex]
+  var id = element.value
+  console.log(id)
+  var node = allNodes.get(id)
+  console.log(node)
+  selectNode(node)
 }
 
 function selectCommittee(d) {
