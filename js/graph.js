@@ -38,6 +38,8 @@ var selector = d3.select('#candidate')
 var selector_1 = d3.select('#committee')
 
 var colorScale = d3.scaleOrdinal(d3.schemeTableau10);
+var linkColorScale= d3.scaleSequentialSqrt(d3.interpolate("lightgrey", "black"))
+
 var linkScale = d3.scaleLinear().range([1,3]);
 var selectedNode;
 
@@ -130,22 +132,30 @@ function includedLinks() {
   console.log(nodeGraph)
   var testNodes = Array.from(nodeGraph.get(selectedNode.id))
   var testLinks = immediateLinks()
+  var farLinks = []
   testNodes.forEach(node => {
     if (node != selectedNode) {
-      testLinks = testLinks.concat(Array.from(linkGraph.get(node)))
+      farLinks = farLinks.concat(Array.from(linkGraph.get(node)))
     }
   });
-  testLinks.forEach(link => {
+  farLinks.forEach(link => {
       link.source.type = "far"
       link.target.type = "far"
       link.type = "far"
   })
+  testLinks = farLinks.concat(testLinks)
   testLinks.forEach(link => {
     if (link.source === selectedNode || link.target === selectedNode) {
       link.source.type = "close"
       link.target.type = "close"
       link.type = "close"
     }
+  })
+  testLinks.unshift({
+    "source": dummy1,
+    "target": dummy1,
+    "value": 1000,
+    "type": "dummy"
   })
   return testLinks
 }
@@ -158,12 +168,7 @@ function immediateLinks() {
     link.source.type = "close"
     link.target.type = "close"
   });
-  testLinks.unshift({
-    "source": dummy1,
-    "target": dummy1,
-    "value": 1000,
-    "type": "dummy"
-  })
+
   return testLinks
 }
 
@@ -355,10 +360,8 @@ d3.dsv("|", '../data/transactions/agg_cm_trans/cm_trans18.txt').then(function(da
 })
 
 function updateVisualization() {
-    linkScale.domain(d3.extent(immediateLinks().slice(1), function(d){ return d.value;}));
-    var extent = d3.extent(immediateLinks().slice(1), function(d){ return parseFloat(d.value);});
-    console.log(immediateLinks())
-    console.log(extent)
+    linkScale.domain(d3.extent(immediateLinks(), function(d){ return d.value;}));
+    var extent = d3.extent(immediateLinks(), function(d){ return parseFloat(d.value);});
     extent[0] = 0;
     console.log(extent)
 
@@ -374,27 +377,6 @@ function updateVisualization() {
             return d;
         })
 
-    //links.filter(function (d, i) { return i === 0;}).remove()
-
-    // nodes.enter()
-    // .append('defs')
-    // .append('pattern')
-    // .attrs({
-    //   "x": "0",
-    //   "y": "0",
-    //   "patternUnits":"userSpaceOnUse",
-    //   "height": "100",
-    //   "width": "100",
-    //   "id": "image",
-    // })
-    // .append('image')
-    // .attrs({
-    //   "xlink:href": 'https://cdn3.iconfinder.com/data/icons/business-and-finance-icons/512/Briefcase-512.png',
-    //   "x": "0",
-    //   "y": "0",
-    //   "width": "100",
-    //   "height": "100"
-    // })
     var nodeEnter = nodes.enter()
     .append('circle')
     .attr('class', 'node')
@@ -405,18 +387,26 @@ function updateVisualization() {
 
     links.merge(linkEnter)
     .attr('stroke-width', function(d) {
-        return 3;
+        if (d.type === "far") {
+          return 3;
+        } else {
+          return 5;
+        }
     })
     .style('stroke', function(d) {
+      if (d.type === "far") {
+        return "black"
+      } else {
         return linkColorScale(d.value);
+      }
     })
     .attr('opacity', function(link) {
       if (link.type === "dummy") {
         return 0;
       } else if (link.type === "close") {
-        return 0.8;
+        return 1.0;
       } else if (link.type === "far") {
-        return 0.1;
+        return 0.02;
       }
     });
 
@@ -454,7 +444,14 @@ function updateVisualization() {
       } else if (node.type === "close") {
         return 1.0;
       } else if (node.type === "far") {
-        return 0.1;
+        return 0.05;
+      }
+    })
+    .attr('z-index', function(d) {
+      if (d.type === "close") {
+        return 100;
+      } else {
+        return 1;
       }
     })
 
@@ -467,13 +464,22 @@ function updateVisualization() {
       .attr('x1', function(d) {return d.source.x;})
       .attr('y1', function(d) {return d.source.y;})
       .attr('x2', function(d) { return d.target.x;})
-      .attr('y2', function(d) { return d.target.y;});
+      .attr('y2', function(d) { return d.target.y;})
+      .attr('id', function(d) { return d.source.id + d.target.id;})
+      .attr('z-index', function(d) {
+        if (d.type === "close") {
+          return 100;
+        } else {
+          return 1;
+        }
+      });
 
 
 
       nodeEnter
       .attr('cx', function(d) { return d.x;})
-      .attr('cy', function(d) { return d.y;});
+      .attr('cy', function(d) { return d.y;})
+      .attr('id', function(d) { return d.id });
         //console.log(selectedNode.x, selectedNode.y)
     }
 
@@ -489,32 +495,55 @@ function updateVisualization() {
         .force('link')
         .links(includedLinks().slice(1));
 
-    nodeEnter.on('mouseover', node_tip.show)
+    nodeEnter.on('mouseover', function(d) {
+        var element = document.getElementById(d.id)
+        if (d.type === "close") {
+          node_tip.show(d, element)
+        }
+      })
       .on('mouseout', node_tip.hide);
-    linkEnter.on('mouseover', link_tip.show)
+
+    linkEnter.on('mouseover', function(d) {
+        var element = document.getElementById(d.source.id + d.target.id)
+        if (d.source.id === selectedNode.id || d.target.id === selectedNode.id) {
+          link_tip.show(d, element)
+        }
+      })
       .on('mouseout', link_tip.hide);
 
     nodeEnter.on('click', function(d) {
-      simulation.stop()
-      //console.log(simulation.nodes());
-      delete selectedNode.fx
-      delete selectedNode.fy
-      selectedNode.vx = 1
-      selectedNode.vy = 1
-      selectedNode.index = d.index
-      //selectedNode.group = 1
-      selectedNode = d;
-      //selectedNode.group = 2
-      selectedNode.fx = width / 2
-      selectedNode.fy = height / 2
-      selectedNode.index = 0;
-      updateVisualization()
-      simulation.alpha(1).restart();
-      node_tip.hide()
-      link_tip.hide()
-      //console.log(simulation.nodes());
+      selectNode(d)
     })
 
 
     //console.log(network)
+}
+
+function selectNode(d) {
+  simulation.stop()
+  //console.log(simulation.nodes());
+  delete selectedNode.fx
+  delete selectedNode.fy
+  selectedNode.vx = 1
+  selectedNode.vy = 1
+  selectedNode.index = d.index
+  //selectedNode.group = 1
+  selectedNode = d;
+  //selectedNode.group = 2
+  selectedNode.fx = width / 2
+  selectedNode.fy = height / 2
+  selectedNode.index = 0;
+  updateVisualization()
+  simulation.alpha(1).restart();
+  node_tip.hide()
+  link_tip.hide()
+  //console.log(simulation.nodes());
+}
+
+function selectCandidate(d) {
+  console.log(d)
+}
+
+function selectCommittee(d) {
+  console.log(d)
 }

@@ -14,10 +14,10 @@
         <a href="../index.html">Main Page</a>
         <br>
         <div>
-            <select id="candidate">
+            <select id="candidate" onchange="selectCandidate();" onfocus="this.selectedIndex = -1;">
                 <option value="" disabled selected>Select a Candidate</option>
             </select>
-            <select id="committee">
+            <select id="committee" onchange="selectCommittee();" onfocus="this.selectedIndex = -1;">
                 <option value="" disabled selected>Select a Committee</option>
             </select>
         </div>
