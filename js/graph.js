@@ -44,7 +44,29 @@ var linkScale = d3.scaleLinear().range([1,3]);
 var selectedNode;
 
 let committees = new Map()
-d3.dsv("|", '../data/committees/cm18.txt').then(function(dataset) {
+Promise.all([
+    d3.dsv("|", '../data/committees/cm18.txt'),
+    d3.dsv("|", '../data/committees/cm16.txt'),
+    d3.dsv("|", '../data/committees/cm14.txt'),
+    d3.dsv("|", '../data/committees/cm12.txt'),
+    d3.dsv("|", '../data/committees/cm10.txt'),
+    d3.dsv("|", '../data/committees/cm08.txt'),
+    d3.dsv("|", '../data/committees/cm06.txt'),
+    d3.dsv("|", '../data/committees/cm04.txt'),
+    d3.dsv("|", '../data/committees/cm02.txt'),
+    d3.dsv("|", '../data/committees/cm00.txt'),
+    d3.dsv("|", '../data/committees/cm98.txt'),
+    d3.dsv("|", '../data/committees/cm96.txt'),
+    d3.dsv("|", '../data/committees/cm94.txt'),
+    d3.dsv("|", '../data/committees/cm92.txt'),
+    d3.dsv("|", '../data/committees/cm90.txt'),
+    d3.dsv("|", '../data/committees/cm88.txt'),
+    d3.dsv("|", '../data/committees/cm86.txt'),
+    d3.dsv("|", '../data/committees/cm84.txt'),
+    d3.dsv("|", '../data/committees/cm82.txt'),
+    d3.dsv("|", '../data/committees/cm80.txt'),
+]).then(all_data => d3.merge(all_data))
+.then(function(dataset) {
   console.log("committee")
   // console.log(dataset)
 
@@ -56,7 +78,29 @@ d3.dsv("|", '../data/committees/cm18.txt').then(function(dataset) {
   console.log(committees)
 })
 let candidates = new Map()
-d3.dsv("|", '../data/candidates/cn18.txt').then(function(dataset) {
+Promise.all([
+    d3.dsv("|", '../data/candidates/cn18.txt'),
+    d3.dsv("|", '../data/candidates/cn16.txt'),
+    d3.dsv("|", '../data/candidates/cn14.txt'),
+    d3.dsv("|", '../data/candidates/cn12.txt'),
+    d3.dsv("|", '../data/candidates/cn10.txt'),
+    d3.dsv("|", '../data/candidates/cn08.txt'),
+    d3.dsv("|", '../data/candidates/cn06.txt'),
+    d3.dsv("|", '../data/candidates/cn04.txt'),
+    d3.dsv("|", '../data/candidates/cn02.txt'),
+    d3.dsv("|", '../data/candidates/cn00.txt'),
+    d3.dsv("|", '../data/candidates/cn98.txt'),
+    d3.dsv("|", '../data/candidates/cn96.txt'),
+    d3.dsv("|", '../data/candidates/cn94.txt'),
+    d3.dsv("|", '../data/candidates/cn92.txt'),
+    d3.dsv("|", '../data/candidates/cn90.txt'),
+    d3.dsv("|", '../data/candidates/cn88.txt'),
+    d3.dsv("|", '../data/candidates/cn86.txt'),
+    d3.dsv("|", '../data/candidates/cn84.txt'),
+    d3.dsv("|", '../data/candidates/cn82.txt'),
+    d3.dsv("|", '../data/candidates/cn80.txt'),
+]).then(all_data => d3.merge(all_data))
+.then(function(dataset) {
   console.log("candidate")
   //console.log(dataset)
 
@@ -212,7 +256,29 @@ var link_tip = d3.tip()
 svg.call(link_tip);
 
 //TODO fix selected node at center
-d3.dsv("|", '../data/transactions/agg_cm_trans/cm_trans18.txt').then(function(dataset) {
+Promise.all([
+    d3.dsv("|", '../data/transactions/agg_cm_trans/cm_trans18.txt'),
+    d3.dsv("|", '../data/transactions/agg_cm_trans/cm_trans16.txt'),
+    d3.dsv("|", '../data/transactions/agg_cm_trans/cm_trans14.txt'),
+    d3.dsv("|", '../data/transactions/agg_cm_trans/cm_trans12.txt'),
+    d3.dsv("|", '../data/transactions/agg_cm_trans/cm_trans10.txt'),
+    d3.dsv("|", '../data/transactions/agg_cm_trans/cm_trans08.txt'),
+    d3.dsv("|", '../data/transactions/agg_cm_trans/cm_trans06.txt'),
+    d3.dsv("|", '../data/transactions/agg_cm_trans/cm_trans04.txt'),
+    d3.dsv("|", '../data/transactions/agg_cm_trans/cm_trans02.txt'),
+    d3.dsv("|", '../data/transactions/agg_cm_trans/cm_trans00.txt'),
+    d3.dsv("|", '../data/transactions/agg_cm_trans/cm_trans98.txt'),
+    d3.dsv("|", '../data/transactions/agg_cm_trans/cm_trans96.txt'),
+    d3.dsv("|", '../data/transactions/agg_cm_trans/cm_trans94.txt'),
+    d3.dsv("|", '../data/transactions/agg_cm_trans/cm_trans92.txt'),
+    d3.dsv("|", '../data/transactions/agg_cm_trans/cm_trans90.txt'),
+    d3.dsv("|", '../data/transactions/agg_cm_trans/cm_trans88.txt'),
+    d3.dsv("|", '../data/transactions/agg_cm_trans/cm_trans86.txt'),
+    d3.dsv("|", '../data/transactions/agg_cm_trans/cm_trans84.txt'),
+    d3.dsv("|", '../data/transactions/agg_cm_trans/cm_trans82.txt'),
+    d3.dsv("|", '../data/transactions/agg_cm_trans/cm_trans80.txt'),
+]).then(all_data => d3.merge(all_data))
+.then(function(dataset) {
     //dataset = dataset.slice(0,10)
     //console.log(dataset)
 
