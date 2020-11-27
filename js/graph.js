@@ -122,12 +122,10 @@ const maximumConnections = 30
 
 function includedLinks() {
   //console.log(Array.from(linkGraph).some(link => link.source === undefined || link.target === undefined))
-  console.log(nodeGraph)
   var testLinks = immediateLinks()
   var testNodes = extractNodes(testLinks)
   var farLinks = []
   testNodes.forEach(node => {
-    console.log(node)
     if (node != selectedNode) {
       var connectedLinks = Array.from(linkGraph.get(node.id))
       connectedLinks.sort(sortLinks)
@@ -196,8 +194,6 @@ var node_tip = d3.tip()
         } else if (candidates.has(d.id)) {
           return toTitleCase(candidates.get(d.id).CAND_NAME);
         }
-        console.log(candidates.get(d.id))
-        console.log(committees.get(d.id))
         return "ID: " + d.id
       });
 svg.call(node_tip);
@@ -214,37 +210,6 @@ var link_tip = d3.tip()
         })
         return formatter.format(d.value)});
 svg.call(link_tip);
-
-function addToSelect(id) {
-  console.log(i)
-  if (candidates.has(i)) {
-    const d = candidates.get(i)
-    var opts = selector.selectAll('option')
-      .data(dataset)
-      .enter()
-      .append('option')
-      .attr('value', function (d) {
-        return d.CAND_ID;
-      })
-      .text(function (d) {
-        return d.CAND_NAME;
-      });
-  } else if (committees.has(i)) {
-    const d = committees.get(i)
-    var opts_1 = selector_1.selectAll('option')
-    .data(dataset)
-    .enter()
-    .append('option')
-    .attr('value', function (d) {
-      return d.CMTE_ID;
-    })
-    .text(function (d) {
-      return d.CMTE_NAME;
-    });
-  } else {
-    return i;
-  }
-}
 
 //TODO fix selected node at center
 d3.dsv("|", '../data/transactions/agg_cm_trans/cm_trans18.txt').then(function(dataset) {
@@ -332,13 +297,12 @@ d3.dsv("|", '../data/transactions/agg_cm_trans/cm_trans18.txt').then(function(da
       //console.log("1")
     }
 
-
+    // Populate selectors
     var opts = selector.selectAll('option')
-      .data(Array.from(allNodes))
+      .data(Array.from(allNodes.keys()).filter(i => candidates.has(i)))
       .enter()
       .append('option')
       .attr('value', function (d) {
-        d = d[0]
         if (candidates.has(d)) {
           var cand = candidates.get(d)
           return cand.CAND_ID;
@@ -350,7 +314,6 @@ d3.dsv("|", '../data/transactions/agg_cm_trans/cm_trans18.txt').then(function(da
         }
       })
       .text(function (d) {
-        d = d[0]
         if (candidates.has(d)) {
           var cand = candidates.get(d)
           return cand.CAND_NAME;
@@ -362,9 +325,39 @@ d3.dsv("|", '../data/transactions/agg_cm_trans/cm_trans18.txt').then(function(da
         }
       });
 
+    var opts_1 = selector_1.selectAll('option')
+      .data(Array.from(allNodes.keys()).filter(i => committees.has(i)))
+      .enter()
+      .append('option')
+      .attr('value', function (d) {
+        if (candidates.has(d)) {
+          var cand = candidates.get(d)
+          return cand.CAND_ID;
+        } else if (committees.has(d)) {
+          var comm = committees.get(d)
+          return comm.CMTE_ID;
+        } else {
+          return d
+        }
+      })
+      .text(function (d) {
+        if (candidates.has(d)) {
+          var cand = candidates.get(d)
+          return cand.CAND_NAME;
+        } else if (committees.has(d)) {
+          var comm = committees.get(d)
+          return comm.CMTE_NAME;
+        } else {
+          return d;
+        }
+      });
+    console.log(document.getElementById("candidate").length)
+    console.log(document.getElementById("committee").length)
+
+
     console.log("done loading")
-    console.log(network)
-    console.log(linkGraph)
+    // console.log(network)
+    // console.log(linkGraph)
 
     dataset = network
 
@@ -581,17 +574,17 @@ function selectNode(d) {
 }
 
 function selectCandidate(d) {
-  console.log(allNodes)
-  console.log(d)
   var select = document.getElementById("candidate")
   var element = select.options[select.selectedIndex]
   var id = element.value
-  console.log(id)
   var node = allNodes.get(id)
-  console.log(node)
   selectNode(node)
 }
 
 function selectCommittee(d) {
-  console.log(d)
+  var select = document.getElementById("committee")
+  var element = select.options[select.selectedIndex]
+  var id = element.value
+  var node = allNodes.get(id)
+  selectNode(node)
 }
