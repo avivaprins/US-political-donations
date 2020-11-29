@@ -7,6 +7,7 @@ var linkGraph = new Map()
 
 let demParties = new Set(["DEM", "DNL", "DFL", "LBL", "NDP", "THD", "PRO", "PPD"])
 let repParties = new Set(["REP", "CRV", "NJC"])
+
 console.log(demParties)
 console.log(repParties)
 Array.prototype.binarySearch = function (target, comparator) {
@@ -233,12 +234,29 @@ var node_tip = d3.tip()
       .attr("class", "d3-tip")
       .offset([-8, 0])
       .html(function(d) {
+        const formatter = new Intl.NumberFormat('en-US', {
+          style: 'currency',
+          currency: 'USD',
+          minimumFractionDigits: 2
+        })
+
+        var sent = 0.0;
+        var received = 0.0;
+        var testLinks = immediateLinks()
+        testLinks.forEach((link, i) => {
+          if (d === link.source) {
+            sent += link.value
+          } else if(d === link.target) {
+            received += link.value
+          }
+        });
+
         if (committees.has(d.id)) {
-          return toTitleCase(committees.get(d.id).CMTE_NAME);
+          return toTitleCase(committees.get(d.id).CMTE_NAME) + "<br>sent: " + formatter.format(sent) + "<br>received: " + formatter.format(received);
         } else if (candidates.has(d.id)) {
-          return toTitleCase(candidates.get(d.id).CAND_NAME);
+          return toTitleCase(candidates.get(d.id).CAND_NAME) + "<br>sent: " + formatter.format(sent) + "<br>received: " + formatter.format(received);
         }
-        return "ID: " + d.id
+        return "ID: " + d.id  + "\nsent:" + d.sent + "\nreceived:" + d.received
       });
 svg.call(node_tip);
 
@@ -282,7 +300,6 @@ Promise.all([
     //dataset = dataset.slice(0,10)
     //console.log(dataset)
 
-    network = {"links": [], "nodes": []}
     var k = 0
     for (i in dataset) {
       d = dataset[i]
@@ -304,10 +321,9 @@ Promise.all([
         node1 = {
           "id": d.SRC_ID,
           "group": group,
-          "freq": 0
+          "freq": 0,
         }
         allNodes.set(d.SRC_ID, node1)
-        network["nodes"].push(node1)
         nodeGraph.set(d.SRC_ID, new Set())
         linkGraph.set(d.SRC_ID, new Set())
       }
@@ -323,10 +339,9 @@ Promise.all([
         node2 = {
           "id": d.TARGET_ID,
           "group": group,
-          "freq": 0
+          "freq": 0,
         }
         allNodes.set(d.TARGET_ID, node2)
-        network["nodes"].push(node2)
         nodeGraph.set(d.TARGET_ID, new Set())
         linkGraph.set(d.TARGET_ID, new Set())
       }
@@ -348,19 +363,8 @@ Promise.all([
         continue;
       }
 
-
       linkGraph.get(d.TARGET_ID).add(link)
       linkGraph.get(d.SRC_ID).add(link)
-      // function equalLinks(a, b) {
-      //   return a.source === b.source && a.target === b.target;
-      // }
-      // if (network["links"].some(l => equalLinks(l, link))) {
-      //   console.log("duplicate")
-      // } else {
-      //   console.log("no duplicate")
-      // }
-      network["links"].push(link)
-      //console.log("1")
     }
 
     // Populate selectors
@@ -422,13 +426,11 @@ Promise.all([
 
 
     console.log("done loading")
-    // console.log(network)
-    // console.log(linkGraph)
 
-    dataset = network
 
     // For Testing
-    selectedNode = network.nodes[50];
+    console.log(allNodes.values().next().value)
+    selectedNode = allNodes.values().next().value;
     selectedNode.fx = width / 2;
     selectedNode.fy = height / 2
     //selectedNode.group = 2
@@ -436,8 +438,14 @@ Promise.all([
     simulation = d3.forceSimulation()
         .force('link', d3.forceLink().id(function(d) { return d.id; }))
         .force('charge', d3.forceManyBody().strength(function(d, i) {
-          if (d.type === "dummy") {
+          if (d === selectedNode) {
+            return -50;
+          } else if (d.type === "dummy") {
             return 0;
+          } else if (d.type === "close") {
+            return -1000;
+          } else if (d.type === "far") {
+            return -10;
           }
           return d === selectedNode ? -50 : -15;
         }))
