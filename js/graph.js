@@ -229,34 +229,84 @@ function toTitleCase(sentence) {
     }).join(" ");
 }
 
+function normal_tooltip(d) {
+  const formatter = new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 2
+  })
+
+  var sent = 0.0;
+  var received = 0.0;
+  var testLinks = immediateLinks()
+  testLinks.forEach((link, i) => {
+    if (d === link.source) {
+      sent += link.value
+    } else if(d === link.target) {
+      received += link.value
+    }
+  });
+
+  if (committees.has(d.id)) {
+    return toTitleCase(committees.get(d.id).CMTE_NAME) + "<br>sent: " + formatter.format(sent) + "<br>received: " + formatter.format(received);
+  } else if (candidates.has(d.id)) {
+    return toTitleCase(candidates.get(d.id).CAND_NAME) + "<br>sent: " + formatter.format(sent) + "<br>received: " + formatter.format(received);
+  }
+  return "ID: " + d.id  + "<br>sent: " + formatter.format(sent) + "<br>received: " + formatter.format(received);
+}
+
+function selected_tooltip(d) {
+  const formatter = new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 2
+  })
+
+  var sent = 0.0;
+  var received = 0.0;
+  var testLinks = immediateLinks()
+  testLinks.forEach((link, i) => {
+    if (d === link.source) {
+      sent += link.value
+    } else if(d === link.target) {
+      received += link.value
+    }
+  });
+
+  var total_sent = 0.0;
+  var total_received = 0.0;
+  var adjacentNodes = nodeGraph.get(d.id)
+  adjacentNodes.forEach((node, i) => {
+    links = linkGraph.get(node)
+    links.forEach((link, i) => {
+      if(d === link.target) {
+        total_received += link.value
+      }
+    });
+  });
+  selected_links = linkGraph.get(d.id)
+  selected_links.forEach((link, i) => {
+    total_sent += link.value
+  });
+
+
+  if (committees.has(d.id)) {
+    return toTitleCase(committees.get(d.id).CMTE_NAME) + "<br>Displaying " + formatter.format(sent) + " contributions out of " + formatter.format(total_sent) + "<br>Displaying " + formatter.format(received) + " received contributions out of " + formatter.format(total_received);
+  } else if (candidates.has(d.id)) {
+    return toTitleCase(candidates.get(d.id).CAND_NAME) + "<br>Displaying " + formatter.format(sent) + " contributions out of " + formatter.format(total_sent) + "<br>Displaying " + formatter.format(received) + " received contributions out of " + formatter.format(total_received);
+  }
+  return "ID: " + d.id  + "<br>Displaying " + formatter.format(sent) + " contributions out of " + formatter.format(total_sent) + "<br>Displaying " + formatter.format(received) + " received contributions out of " + formatter.format(total_received);
+}
 // Define the div for the tooltip
 var node_tip = d3.tip()
       .attr("class", "d3-tip")
       .offset([-8, 0])
       .html(function(d) {
-        const formatter = new Intl.NumberFormat('en-US', {
-          style: 'currency',
-          currency: 'USD',
-          minimumFractionDigits: 2
-        })
-
-        var sent = 0.0;
-        var received = 0.0;
-        var testLinks = immediateLinks()
-        testLinks.forEach((link, i) => {
-          if (d === link.source) {
-            sent += link.value
-          } else if(d === link.target) {
-            received += link.value
-          }
-        });
-
-        if (committees.has(d.id)) {
-          return toTitleCase(committees.get(d.id).CMTE_NAME) + "<br>sent: " + formatter.format(sent) + "<br>received: " + formatter.format(received);
-        } else if (candidates.has(d.id)) {
-          return toTitleCase(candidates.get(d.id).CAND_NAME) + "<br>sent: " + formatter.format(sent) + "<br>received: " + formatter.format(received);
+        if (d != selectedNode) {
+          return normal_tooltip(d)
+        } else {
+          return selected_tooltip(d)
         }
-        return "ID: " + d.id  + "\nsent:" + d.sent + "\nreceived:" + d.received
       });
 svg.call(node_tip);
 
