@@ -8,12 +8,16 @@
     <style>
         .select2-dropdown {top: 22px !important; left: 8px !important;}
     </style>
+    <link rel="stylesheet" href="../css/rSlider.min.css">
 </head>
 <body>
     <div id="main">
         <a href="../index.html">Main Page</a>
         <br>
-        <div>
+        <div class="w3-panel w3-card w3-hover-shadow" style="width:700px;padding-left:40px;padding-right:40px">
+            <p style="padding-top:10px"><b>Range of Years</b></p>
+            <input type="text" id="sampleSlider"/>
+        </div>
             <select id="candidate" onchange="selectCandidate();" onfocus="this.selectedIndex = -1;">
                 <option value="" disabled selected>Select a Candidate</option>
             </select>
@@ -32,13 +36,24 @@
 <script src="../js/graph.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 <script src="../js/select2.min.js"></script>
+<script src="../js/rSlider.min.js"></script>    
 <script>
     $("#candidate").select2( {
-        allowClear: true
+        allowClear: true,
         } );
     $("#committee").select2( {
-        allowClear: true
+        allowClear: true,
         } );
-
+    var mySlider = new rSlider({
+        target: '#sampleSlider',
+        values: [1980,1982,1984,1986,1988,1990,1992,1994,1996,1998,2000,2002,2004,2006,2008,2010,2012,2014,2016,2018],
+        range: false,
+        tooltip: true,
+        scale: false,
+        labels: false,
+        onChange: function (vals) {
+            Update_year(vals);
+            }
+    });
     </script>
 </html>

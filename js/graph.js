@@ -4,12 +4,30 @@ var allNodes = new Map()
 var allLinks = new Map()
 var nodeGraph = new Map()
 var linkGraph = new Map()
+let committees = new Map()
+let candidates = new Map()
+
 
 let demParties = new Set(["DEM", "DNL", "DFL", "LBL", "NDP", "THD", "PRO", "PPD"])
 let repParties = new Set(["REP", "CRV", "NJC"])
 
-console.log(demParties)
-console.log(repParties)
+// console.log(demParties)
+// console.log(repParties)
+
+var svg = d3.select('svg');
+var width = +svg.attr('width');
+var height = +svg.attr('height');
+
+var selector = d3.select('#candidate')
+var selector_1 = d3.select('#committee')
+
+var colorScale = d3.scaleOrdinal(d3.schemeTableau10);
+var linkColorScale= d3.scaleSequentialSqrt(d3.interpolate("lightgrey", "black"))
+
+var linkScale = d3.scaleLinear().range([1,3]);
+var selectedNode;
+
+
 Array.prototype.binarySearch = function (target, comparator) {
     var l = 0,
         h = this.length - 1,
@@ -31,85 +49,6 @@ Array.prototype.binarySearch = function (target, comparator) {
     return~l;
 };
 
-var svg = d3.select('svg');
-var width = +svg.attr('width');
-var height = +svg.attr('height');
-
-var selector = d3.select('#candidate')
-var selector_1 = d3.select('#committee')
-
-var colorScale = d3.scaleOrdinal(d3.schemeTableau10);
-var linkColorScale= d3.scaleSequentialSqrt(d3.interpolate("lightgrey", "black"))
-
-var linkScale = d3.scaleLinear().range([1,3]);
-var selectedNode;
-
-let committees = new Map()
-Promise.all([
-    d3.dsv("|", '../data/committees/cm18.txt'),
-    d3.dsv("|", '../data/committees/cm16.txt'),
-    d3.dsv("|", '../data/committees/cm14.txt'),
-    d3.dsv("|", '../data/committees/cm12.txt'),
-    d3.dsv("|", '../data/committees/cm10.txt'),
-    d3.dsv("|", '../data/committees/cm08.txt'),
-    d3.dsv("|", '../data/committees/cm06.txt'),
-    d3.dsv("|", '../data/committees/cm04.txt'),
-    d3.dsv("|", '../data/committees/cm02.txt'),
-    d3.dsv("|", '../data/committees/cm00.txt'),
-    d3.dsv("|", '../data/committees/cm98.txt'),
-    d3.dsv("|", '../data/committees/cm96.txt'),
-    d3.dsv("|", '../data/committees/cm94.txt'),
-    d3.dsv("|", '../data/committees/cm92.txt'),
-    d3.dsv("|", '../data/committees/cm90.txt'),
-    d3.dsv("|", '../data/committees/cm88.txt'),
-    d3.dsv("|", '../data/committees/cm86.txt'),
-    d3.dsv("|", '../data/committees/cm84.txt'),
-    d3.dsv("|", '../data/committees/cm82.txt'),
-    d3.dsv("|", '../data/committees/cm80.txt'),
-]).then(all_data => d3.merge(all_data))
-.then(function(dataset) {
-  console.log("committee")
-  // console.log(dataset)
-
-
-  dataset.forEach((item, i) => {
-    committees.set(item.CMTE_ID, item)
-  });
-  //console.log(nodeTree)
-  console.log(committees)
-})
-let candidates = new Map()
-Promise.all([
-    d3.dsv("|", '../data/candidates/cn18.txt'),
-    d3.dsv("|", '../data/candidates/cn16.txt'),
-    d3.dsv("|", '../data/candidates/cn14.txt'),
-    d3.dsv("|", '../data/candidates/cn12.txt'),
-    d3.dsv("|", '../data/candidates/cn10.txt'),
-    d3.dsv("|", '../data/candidates/cn08.txt'),
-    d3.dsv("|", '../data/candidates/cn06.txt'),
-    d3.dsv("|", '../data/candidates/cn04.txt'),
-    d3.dsv("|", '../data/candidates/cn02.txt'),
-    d3.dsv("|", '../data/candidates/cn00.txt'),
-    d3.dsv("|", '../data/candidates/cn98.txt'),
-    d3.dsv("|", '../data/candidates/cn96.txt'),
-    d3.dsv("|", '../data/candidates/cn94.txt'),
-    d3.dsv("|", '../data/candidates/cn92.txt'),
-    d3.dsv("|", '../data/candidates/cn90.txt'),
-    d3.dsv("|", '../data/candidates/cn88.txt'),
-    d3.dsv("|", '../data/candidates/cn86.txt'),
-    d3.dsv("|", '../data/candidates/cn84.txt'),
-    d3.dsv("|", '../data/candidates/cn82.txt'),
-    d3.dsv("|", '../data/candidates/cn80.txt'),
-]).then(all_data => d3.merge(all_data))
-.then(function(dataset) {
-  console.log("candidate")
-  //console.log(dataset)
-
-  dataset.forEach((item, i) => {
-    candidates.set(item.CAND_ID, item)
-  });
-  console.log(candidates)
-})
 
 var linkG = svg.append('g')
     .attr('class', 'links-group');
@@ -219,8 +158,7 @@ function extractNodes(links) {
   })
   return Array.from(exNodes);
 }
-console.log(width)
-console.log(height)
+
 var simulation;
 
 function toTitleCase(sentence) {
@@ -323,198 +261,260 @@ var link_tip = d3.tip()
         return formatter.format(d.value)});
 svg.call(link_tip);
 
-//TODO fix selected node at center
-Promise.all([
-    d3.dsv("|", '../data/transactions/agg_cm_trans/cm_trans18.txt'),
-    d3.dsv("|", '../data/transactions/agg_cm_trans/cm_trans16.txt'),
-    d3.dsv("|", '../data/transactions/agg_cm_trans/cm_trans14.txt'),
-    d3.dsv("|", '../data/transactions/agg_cm_trans/cm_trans12.txt'),
-    d3.dsv("|", '../data/transactions/agg_cm_trans/cm_trans10.txt'),
-    d3.dsv("|", '../data/transactions/agg_cm_trans/cm_trans08.txt'),
-    d3.dsv("|", '../data/transactions/agg_cm_trans/cm_trans06.txt'),
-    d3.dsv("|", '../data/transactions/agg_cm_trans/cm_trans04.txt'),
-    d3.dsv("|", '../data/transactions/agg_cm_trans/cm_trans02.txt'),
-    d3.dsv("|", '../data/transactions/agg_cm_trans/cm_trans00.txt'),
-    d3.dsv("|", '../data/transactions/agg_cm_trans/cm_trans98.txt'),
-    d3.dsv("|", '../data/transactions/agg_cm_trans/cm_trans96.txt'),
-    d3.dsv("|", '../data/transactions/agg_cm_trans/cm_trans94.txt'),
-    d3.dsv("|", '../data/transactions/agg_cm_trans/cm_trans92.txt'),
-    d3.dsv("|", '../data/transactions/agg_cm_trans/cm_trans90.txt'),
-    d3.dsv("|", '../data/transactions/agg_cm_trans/cm_trans88.txt'),
-    d3.dsv("|", '../data/transactions/agg_cm_trans/cm_trans86.txt'),
-    d3.dsv("|", '../data/transactions/agg_cm_trans/cm_trans84.txt'),
-    d3.dsv("|", '../data/transactions/agg_cm_trans/cm_trans82.txt'),
-    d3.dsv("|", '../data/transactions/agg_cm_trans/cm_trans80.txt'),
-]).then(all_data => d3.merge(all_data))
-.then(function(dataset) {
-    //dataset = dataset.slice(0,10)
+
+
+
+function Update_year(year){
+  var temp = year.toString().slice(-2);
+  console.log(temp);
+  document.getElementById("candidate").innerHTML = null;
+  document.getElementById("committee").innerHTML = null;
+  selector.selectAll('option')
+          .data(['Select a Candidate'])
+          .enter()
+          .append('option')
+          .text(function(d) {
+            return d;
+          })
+          .attr('value','')
+          .each(function(d) {
+            if (d === "Please Select") {
+              d3.select(this).property("disabled", true)
+            }
+          });
+  selector_1.selectAll('option')
+          .data(['Select a Committee'])
+          .enter()
+          .append('option')
+          .text(function(d) {
+            return d;
+          })
+          .attr('value','')
+          .each(function(d) {
+            if (d === "Please Select") {
+              d3.select(this).property("disabled", true)
+            }
+          });
+
+
+  allNodes = new Map();
+  allLinks = new Map();
+  nodeGraph = new Map();
+  linkGraph = new Map();
+  committees = new Map();
+  candidates = new Map();
+
+
+  Promise.all([
+    d3.dsv("|", '../data/committees/cm' + temp + '.txt'),
+  ]).then(all_data => d3.merge(all_data))
+  .then(function(dataset) {
+     console.log("committee")
+    // console.log(dataset)
+
+
+    dataset.forEach((item, i) => {
+      committees.set(item.CMTE_ID, item)
+    });
+    //console.log(nodeTree)
+    // console.log(committees)
+  })
+  Promise.all([
+      d3.dsv("|", '../data/candidates/cn' + temp + '.txt'),
+  ]).then(all_data => d3.merge(all_data))
+  .then(function(dataset) {
+    console.log("candidate")
     //console.log(dataset)
 
-    var k = 0
-    for (i in dataset) {
-      d = dataset[i]
-      //console.log(d)
-      if(i === "columns") {
-        break;
-      }
-      if (d.TARGET_ID === undefined || d.SRC_ID === undefined || d.SUM === undefined || isNaN(parseFloat(d.SUM)) || parseFloat(d.SUM) <= 0) {
-        continue;
-      }
-      node1 = allNodes.get(d.SRC_ID)
-      if (node1 === undefined) {
-        var group = 0;
-        if (committees.has(d.SRC_ID)) {
-          group = 1;
-        } else if (candidates.has(d.SRC_ID)) {
-          group = 2
-        }
-        node1 = {
-          "id": d.SRC_ID,
-          "group": group,
-          "freq": 0,
-        }
-        allNodes.set(d.SRC_ID, node1)
-        nodeGraph.set(d.SRC_ID, new Set())
-        linkGraph.set(d.SRC_ID, new Set())
-      }
-      node1.freq+=1
-      node2 = allNodes.get(d.TARGET_ID)
-      if (node2 === undefined) {
-        var group = 0;
-        if (committees.has(d.TARGET_ID)) {
-          group = 1;
-        } else if (candidates.has(d.TARGET_ID)) {
-          group = 2
-        }
-        node2 = {
-          "id": d.TARGET_ID,
-          "group": group,
-          "freq": 0,
-        }
-        allNodes.set(d.TARGET_ID, node2)
-        nodeGraph.set(d.TARGET_ID, new Set())
-        linkGraph.set(d.TARGET_ID, new Set())
-      }
-      node2.freq+=1
-      nodeGraph.get(d.SRC_ID).add(d.TARGET_ID)
-      nodeGraph.get(d.TARGET_ID).add(d.SRC_ID)
+    dataset.forEach((item, i) => {
+      candidates.set(item.CAND_ID, item)
+    });
+    console.log(candidates)
+  })
 
-      let value = parseFloat(d.SUM)
-      var link = allLinks.get(d.SRC_ID + "-" + d.TARGET_ID)
-      if (link === undefined) {
-        link = {
-            "source": node1,
-            "target": node2,
-            "value": value,
+  // console.log(width)
+  // console.log(height)
+
+  //TODO fix selected node at center
+  Promise.all([
+      d3.dsv("|", '../data/transactions/agg_cm_trans/cm_trans' + temp + '.txt'),
+      ]).then(all_data => d3.merge(all_data))
+  .then(function(dataset) {
+      //dataset = dataset.slice(0,10)
+      //console.log(dataset)
+
+      var k = 0
+      for (i in dataset) {
+        d = dataset[i]
+        //console.log(d)
+        if(i === "columns") {
+          break;
         }
-        allLinks.set(d.SRC_ID + "-" + d.TARGET_ID, link)
-      } else {
-        link.value += value;
-        continue;
-      }
-
-      linkGraph.get(d.TARGET_ID).add(link)
-      linkGraph.get(d.SRC_ID).add(link)
-    }
-
-    // Populate selectors
-    var opts = selector.selectAll('option')
-      .data(Array.from(allNodes.keys()).filter(i => candidates.has(i)))
-      .enter()
-      .append('option')
-      .attr('value', function (d) {
-        if (candidates.has(d)) {
-          var cand = candidates.get(d)
-          return cand.CAND_ID;
-        } else if (committees.has(d)) {
-          var comm = committees.get(d)
-          return comm.CMTE_ID;
-        } else {
-          return d
+        if (d.TARGET_ID === undefined || d.SRC_ID === undefined || d.SUM === undefined || isNaN(parseFloat(d.SUM)) || parseFloat(d.SUM) <= 0) {
+          continue;
         }
-      })
-      .text(function (d) {
-        if (candidates.has(d)) {
-          var cand = candidates.get(d)
-          return cand.CAND_NAME;
-        } else if (committees.has(d)) {
-          var comm = committees.get(d)
-          return comm.CMTE_NAME;
-        } else {
-          return d;
-        }
-      });
-
-    var opts_1 = selector_1.selectAll('option')
-      .data(Array.from(allNodes.keys()).filter(i => committees.has(i)))
-      .enter()
-      .append('option')
-      .attr('value', function (d) {
-        if (candidates.has(d)) {
-          var cand = candidates.get(d)
-          return cand.CAND_ID;
-        } else if (committees.has(d)) {
-          var comm = committees.get(d)
-          return comm.CMTE_ID;
-        } else {
-          return d
-        }
-      })
-      .text(function (d) {
-        if (candidates.has(d)) {
-          var cand = candidates.get(d)
-          return cand.CAND_NAME;
-        } else if (committees.has(d)) {
-          var comm = committees.get(d)
-          return comm.CMTE_NAME;
-        } else {
-          return d;
-        }
-      });
-    console.log(document.getElementById("candidate").length)
-    console.log(document.getElementById("committee").length)
-
-
-    console.log("done loading")
-
-
-    // For Testing
-    console.log(allNodes.values().next().value)
-    selectedNode = allNodes.values().next().value;
-    selectedNode.fx = width / 2;
-    selectedNode.fy = height / 2
-    //selectedNode.group = 2
-
-    simulation = d3.forceSimulation()
-        .force('link', d3.forceLink().id(function(d) { return d.id; }))
-        .force('charge', d3.forceManyBody().strength(function(d, i) {
-          if (d === selectedNode) {
-            return -50;
-          } else if (d.type === "dummy") {
-            return 0;
-          } else if (d.type === "close") {
-            return -1000;
-          } else if (d.type === "far") {
-            return -10;
+        node1 = allNodes.get(d.SRC_ID)
+        if (node1 === undefined) {
+          var group = 0;
+          if (committees.has(d.SRC_ID)) {
+            group = 1;
+          } else if (candidates.has(d.SRC_ID)) {
+            group = 2
           }
-          return d === selectedNode ? -50 : -15;
-        }))
-        .force('center', d3.forceCenter(width / 2, height / 2))
-        .force('collide', d3.forceCollide(25).radius(function(d, i) {
-          if (d.type === "dummy") {
-            return 0;
+          node1 = {
+            "id": d.SRC_ID,
+            "group": group,
+            "freq": 0,
           }
-          return 25;
-        }))
-        .force('radial', d3.forceRadial(60).strength(function(d) {
-          if (d.type === "dummy") {
-            return .10;
+          allNodes.set(d.SRC_ID, node1)
+          nodeGraph.set(d.SRC_ID, new Set())
+          linkGraph.set(d.SRC_ID, new Set())
+        }
+        node1.freq+=1
+        node2 = allNodes.get(d.TARGET_ID)
+        if (node2 === undefined) {
+          var group = 0;
+          if (committees.has(d.TARGET_ID)) {
+            group = 1;
+          } else if (candidates.has(d.TARGET_ID)) {
+            group = 2
           }
-          return 0.1;
-        }))
+          node2 = {
+            "id": d.TARGET_ID,
+            "group": group,
+            "freq": 0,
+          }
+          allNodes.set(d.TARGET_ID, node2)
+          nodeGraph.set(d.TARGET_ID, new Set())
+          linkGraph.set(d.TARGET_ID, new Set())
+        }
+        node2.freq+=1
+        nodeGraph.get(d.SRC_ID).add(d.TARGET_ID)
+        nodeGraph.get(d.TARGET_ID).add(d.SRC_ID)
 
-    updateVisualization()
-})
+        let value = parseFloat(d.SUM)
+        var link = allLinks.get(d.SRC_ID + "-" + d.TARGET_ID)
+        if (link === undefined) {
+          link = {
+              "source": node1,
+              "target": node2,
+              "value": value,
+          }
+          allLinks.set(d.SRC_ID + "-" + d.TARGET_ID, link)
+        } else {
+          link.value += value;
+          continue;
+        }
+
+        linkGraph.get(d.TARGET_ID).add(link)
+        linkGraph.get(d.SRC_ID).add(link)
+      }
+
+      // Populate selectors
+      var opts = selector.selectAll('option')
+        .data(Array.from(allNodes.keys()).filter(i => candidates.has(i)))
+        .enter()
+        .append('option')
+        .attr('value', function (d) {
+          if (candidates.has(d)) {
+            var cand = candidates.get(d)
+            return cand.CAND_ID;
+          } else if (committees.has(d)) {
+            var comm = committees.get(d)
+            return comm.CMTE_ID;
+          } else {
+            return d
+          }
+        })
+        .text(function (d) {
+          if (candidates.has(d)) {
+            var cand = candidates.get(d)
+            return cand.CAND_NAME;
+          } else if (committees.has(d)) {
+            var comm = committees.get(d)
+            return comm.CMTE_NAME;
+          } else {
+            return d;
+          }
+        });
+
+      var opts_1 = selector_1.selectAll('option')
+        .data(Array.from(allNodes.keys()).filter(i => committees.has(i)))
+        .enter()
+        .append('option')
+        .attr('value', function (d) {
+          if (candidates.has(d)) {
+            var cand = candidates.get(d)
+            return cand.CAND_ID;
+          } else if (committees.has(d)) {
+            var comm = committees.get(d)
+            return comm.CMTE_ID;
+          } else {
+            return d
+          }
+        })
+        .text(function (d) {
+          if (candidates.has(d)) {
+            var cand = candidates.get(d)
+            return cand.CAND_NAME;
+          } else if (committees.has(d)) {
+            var comm = committees.get(d)
+            return comm.CMTE_NAME;
+          } else {
+            return d;
+          }
+        });
+      console.log(document.getElementById("candidate").length)
+      console.log(document.getElementById("committee").length)
+
+
+      console.log("done loading")
+
+
+      // For Testing
+      console.log(allNodes.values().next().value)
+      selectedNode = allNodes.values().next().value;
+      selectedNode.fx = width / 2;
+      selectedNode.fy = height / 2
+      //selectedNode.group = 2
+
+      simulation = d3.forceSimulation()
+          .force('link', d3.forceLink().id(function(d) { return d.id; }))
+          .force('charge', d3.forceManyBody().strength(function(d, i) {
+            if (d === selectedNode) {
+              return -50;
+            } else if (d.type === "dummy") {
+              return 0;
+            } else if (d.type === "close") {
+              return -1000;
+            } else if (d.type === "far") {
+              return -10;
+            }
+            return d === selectedNode ? -50 : -15;
+          }))
+          .force('center', d3.forceCenter(width / 2, height / 2))
+          .force('collide', d3.forceCollide(25).radius(function(d, i) {
+            if (d.type === "dummy") {
+              return 0;
+            }
+            return 25;
+          }))
+          .force('radial', d3.forceRadial(60).strength(function(d) {
+            if (d.type === "dummy") {
+              return .10;
+            }
+            return 0.1;
+          }))
+
+      updateVisualization()
+  })
+
+
+
+
+
+
+}
 
 function updateVisualization() {
     linkScale.domain(d3.extent(immediateLinks(), function(d){ return d.value;}));
