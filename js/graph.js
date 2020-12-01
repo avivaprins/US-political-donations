@@ -102,7 +102,7 @@ function sortLinks (a, b) {
   }
 }
 
-const maximumConnections = 100
+const maximumConnections = 30
 
 function includedLinks() {
   //console.log(Array.from(linkGraph).some(link => link.source === undefined || link.target === undefined))
