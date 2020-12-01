@@ -279,7 +279,7 @@ function Update_year(year){
 
 
   Promise.all([
-    d3.dsv("|", '../data/committees/cm' + temp + '.txt'),
+    d3.dsv("|", './data/committees/cm' + temp + '.txt'),
   ]).then(all_data => d3.merge(all_data))
   .then(function(dataset) {
      console.log("committee")
@@ -289,7 +289,7 @@ function Update_year(year){
   })
 
   Promise.all([
-      d3.dsv("|", '../data/candidates/cn' + temp + '.txt'),
+      d3.dsv("|", './data/candidates/cn' + temp + '.txt'),
   ]).then(all_data => d3.merge(all_data))
   .then(function(dataset) {
     console.log("candidate")
@@ -303,7 +303,7 @@ function Update_year(year){
 
   //TODO fix selected node at center
   Promise.all([
-      d3.dsv("|", '../data/transactions/agg_cm_trans/cm_trans' + temp + '.txt'),
+      d3.dsv("|", './data/transactions/agg_cm_trans/cm_trans' + temp + '.txt'),
       ]).then(all_data => d3.merge(all_data))
   .then(function(dataset) {
       //dataset = dataset.slice(0,10)
