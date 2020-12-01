@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>US Political Donations</title>
     <link rel="stylesheet" href="../css/graph.css">
-    <link rel="stylesheet" href="/css/select2.min.css" />
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
     <style>
         .select2-dropdown {top: 22px !important; left: 8px !important;}
     </style>
@@ -14,36 +14,33 @@
     <div id="main">
         <a href="../index.html">Main Page</a>
         <br>
-        <div class="w3-panel w3-card w3-hover-shadow" style="width:700px;padding-left:40px;padding-right:40px">
+        <div>
             <p style="padding-top:10px"><b>Range of Years</b></p>
             <input type="text" id="sampleSlider"/>
         </div>
-            <select id="candidate" onchange="selectCandidate();" onfocus="this.selectedIndex = -1;">
-                <option value="" disabled selected>Select a Candidate</option>
-            </select>
-            <select id="committee" onchange="selectCommittee();" onfocus="this.selectedIndex = -1;">
-                <option value="" disabled selected>Select a Committee</option>
-            </select>
+        <div>
+            <div class="ui-widget">
+                <label for="can_tags">Select a Candidate: </label>
+                <input id="can_tags">
+            </div>
+            <div class="ui-widget">
+                <label for="com_tags">Select a Committee: </label>
+                <input id="com_tags">
+            </div>
         </div>
-        <svg width="1920" height="1080" style="border: 1px solid #777;">
 
+        <svg width="1920" height="1080" style="border: 1px solid #777;">
         </svg>
     </div>
 </body>
 <script src="https://d3js.org/d3.v5.min.js"></script>
 <script src="../js/d3-tip.js"></script>
 <script src="https://d3js.org/d3-selection-multi.v1.js"></script>
-<script src="../js/graph.js"></script>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-<script src="../js/select2.min.js"></script>
 <script src="../js/rSlider.min.js"></script>    
+<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+<script src="../js/graph.js"></script>
 <script>
-    $("#candidate").select2( {
-        allowClear: true,
-        } );
-    $("#committee").select2( {
-        allowClear: true,
-        } );
     var mySlider = new rSlider({
         target: '#sampleSlider',
         values: [1980,1982,1984,1986,1988,1990,1992,1994,1996,1998,2000,2002,2004,2006,2008,2010,2012,2014,2016,2018],

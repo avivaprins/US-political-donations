@@ -18,8 +18,6 @@ var svg = d3.select('svg');
 var width = +svg.attr('width');
 var height = +svg.attr('height');
 
-var selector = d3.select('#candidate')
-var selector_1 = d3.select('#committee')
 
 var colorScale = d3.scaleOrdinal(d3.schemeTableau10);
 var linkColorScale= d3.scaleSequentialSqrt(d3.interpolate("lightgrey", "black"))
@@ -267,36 +265,9 @@ svg.call(link_tip);
 function Update_year(year){
   var temp = year.toString().slice(-2);
   console.log(temp);
-  document.getElementById("candidate").innerHTML = null;
-  document.getElementById("committee").innerHTML = null;
-  selector.selectAll('option')
-          .data(['Select a Candidate'])
-          .enter()
-          .append('option')
-          .text(function(d) {
-            return d;
-          })
-          .attr('value','')
-          .each(function(d) {
-            if (d === "Please Select") {
-              d3.select(this).property("disabled", true)
-            }
-          });
-  selector_1.selectAll('option')
-          .data(['Select a Committee'])
-          .enter()
-          .append('option')
-          .text(function(d) {
-            return d;
-          })
-          .attr('value','')
-          .each(function(d) {
-            if (d === "Please Select") {
-              d3.select(this).property("disabled", true)
-            }
-          });
 
-
+  var Candidate_Tags = [];
+  var Committee_Tags = [];
   allNodes = new Map();
   allLinks = new Map();
   nodeGraph = new Map();
@@ -310,26 +281,21 @@ function Update_year(year){
   ]).then(all_data => d3.merge(all_data))
   .then(function(dataset) {
      console.log("committee")
-    // console.log(dataset)
-
-
     dataset.forEach((item, i) => {
+      Committee_Tags.push({"label":item.CMTE_NAME,"value":item.CMTE_ID});
       committees.set(item.CMTE_ID, item)
     });
-    //console.log(nodeTree)
-    // console.log(committees)
   })
+
   Promise.all([
       d3.dsv("|", '../data/candidates/cn' + temp + '.txt'),
   ]).then(all_data => d3.merge(all_data))
   .then(function(dataset) {
     console.log("candidate")
-    //console.log(dataset)
-
     dataset.forEach((item, i) => {
+      Candidate_Tags.push({"label":item.CAND_NAME,"value":item.CAND_ID});
       candidates.set(item.CAND_ID, item)
     });
-    console.log(candidates)
   })
 
   // console.log(width)
@@ -410,64 +376,21 @@ function Update_year(year){
         linkGraph.get(d.SRC_ID).add(link)
       }
 
-      // Populate selectors
-      var opts = selector.selectAll('option')
-        .data(Array.from(allNodes.keys()).filter(i => candidates.has(i)))
-        .enter()
-        .append('option')
-        .attr('value', function (d) {
-          if (candidates.has(d)) {
-            var cand = candidates.get(d)
-            return cand.CAND_ID;
-          } else if (committees.has(d)) {
-            var comm = committees.get(d)
-            return comm.CMTE_ID;
-          } else {
-            return d
-          }
-        })
-        .text(function (d) {
-          if (candidates.has(d)) {
-            var cand = candidates.get(d)
-            return cand.CAND_NAME;
-          } else if (committees.has(d)) {
-            var comm = committees.get(d)
-            return comm.CMTE_NAME;
-          } else {
-            return d;
-          }
+
+      $( function() {
+        $( "#can_tags" ).autocomplete({
+          minLength: 3,
+          source: Candidate_Tags,
+          select: function(event, ui) {selectCandidate(ui.item.value)},
         });
-
-      var opts_1 = selector_1.selectAll('option')
-        .data(Array.from(allNodes.keys()).filter(i => committees.has(i)))
-        .enter()
-        .append('option')
-        .attr('value', function (d) {
-          if (candidates.has(d)) {
-            var cand = candidates.get(d)
-            return cand.CAND_ID;
-          } else if (committees.has(d)) {
-            var comm = committees.get(d)
-            return comm.CMTE_ID;
-          } else {
-            return d
-          }
-        })
-        .text(function (d) {
-          if (candidates.has(d)) {
-            var cand = candidates.get(d)
-            return cand.CAND_NAME;
-          } else if (committees.has(d)) {
-            var comm = committees.get(d)
-            return comm.CMTE_NAME;
-          } else {
-            return d;
-          }
+      });
+      $( function() {
+        $( "#com_tags" ).autocomplete({
+          minLength: 3,
+          source: Committee_Tags,
+          select: function(event, ui) {selectCommittee(ui.item.value)},
         });
-      console.log(document.getElementById("candidate").length)
-      console.log(document.getElementById("committee").length)
-
-
+      });
       console.log("done loading")
 
 
@@ -703,18 +626,18 @@ function selectNode(d) {
   //console.log(simulation.nodes());
 }
 
-function selectCandidate(d) {
-  var select = document.getElementById("candidate")
-  var element = select.options[select.selectedIndex]
-  var id = element.value
+function selectCandidate(id) {
+  // var select = document.getElementById("candidate")
+  // var element = select.options[select.selectedIndex]
+  // var id = element.value
   var node = allNodes.get(id)
   selectNode(node)
 }
 
-function selectCommittee(d) {
-  var select = document.getElementById("committee")
-  var element = select.options[select.selectedIndex]
-  var id = element.value
+function selectCommittee(id) {
+  // var select = document.getElementById("committee")
+  // var element = select.options[select.selectedIndex]
+  // var id = element.value
   var node = allNodes.get(id)
   selectNode(node)
 }
