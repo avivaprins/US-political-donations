@@ -4,15 +4,50 @@
     <meta charset="UTF-8">
     <title>US Political Donations</title>
     <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="../css/graph.css">
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <link rel="stylesheet" href="../css/rSlider.min.css">
 </head>
-<body>
-    <div id="main">
-        <a href="html/graph.html">Graph Visualization</a>
-        <a href="html/map.html">Map Visualization</a>
-        <br>
-        <img src="/assets/dittokarp.jpg" width="720" height="720">
-    </div>
+<body class="w3-light-grey">
+    <div class="w3-main" align="center" style="margin-top:43px;">
+
+        <div id="comment" class="w3-card">
+          Hello
+        </div>
+        
+          <!-- Header -->
+          <header class="w3-container" style="padding-top:22px;padding-bottom:5px">
+            <h1><b><i class="fa fa-dashboard"></i> US Political Donations (1980-2018)</b></h1>
+          </header>
+        
+        <div class="w3-panel w3-card w3-hover-shadow" align="center" style="width:960px;padding-left:80px;padding-right:100px">
+          <p style="padding-top:10px"><b>Range of Years</b></p>
+          <input type="text" id="sampleSlider"/>
+            <div class="ui-widget" style="padding-top:10px;padding-bottom:20px;">
+                <label for="can_tags"><b>Select a Candidate: </b></label>
+                <input id="can_tags">
+                <label for="com_tags" style="padding-left:40px;"><b>Select a Committee: </b></label>
+                <input id="com_tags">
+            </div>
+        </div>
+        
+        <div class="w3-panel w3-card w3-hover-shadow" style="padding-top:20px;width:1280px;height:960px">
+        <div align="center"><h4>Network Layout</h4></div>
+            <svg id="Network" width="1120" height="840" style="border: 1px solid #777;">
+        </svg>
+        </div>
+                
+
+
 </body>
 <script src="https://d3js.org/d3.v5.min.js"></script>
-<script src="https://unpkg.com/d3-simple-slider"></script>
+<script src="./js/d3-tip.js"></script>
+<script src="https://d3js.org/d3-selection-multi.v1.js"></script>
+<script src="./js/rSlider.min.js"></script>    
+<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+<script src="./js/graph.js"></script>
 </html>

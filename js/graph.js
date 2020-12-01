@@ -14,10 +14,12 @@ let repParties = new Set(["REP", "CRV", "NJC"])
 // console.log(demParties)
 // console.log(repParties)
 
-var svg = d3.select('svg');
+var svg = d3.select('svg#Network');
 var width = +svg.attr('width');
 var height = +svg.attr('height');
+var current_id = '';
 
+console.log(width,height)
 
 var colorScale = d3.scaleOrdinal(d3.schemeTableau10);
 var linkColorScale= d3.scaleSequentialSqrt(d3.interpolate("lightgrey", "black"))
@@ -184,9 +186,9 @@ function normal_tooltip(d) {
   });
 
   if (committees.has(d.id)) {
-    return toTitleCase(committees.get(d.id).CMTE_NAME) + "<br>sent: " + formatter.format(sent) + "<br>received: " + formatter.format(received);
+    return toTitleCase(committees.get(d.id).CMTE_NAME) + "<br>Sent: " + formatter.format(sent) + "<br>Received: " + formatter.format(received);
   } else if (candidates.has(d.id)) {
-    return toTitleCase(candidates.get(d.id).CAND_NAME) + "<br>sent: " + formatter.format(sent) + "<br>received: " + formatter.format(received);
+    return toTitleCase(candidates.get(d.id).CAND_NAME) + "<br>Sent: " + formatter.format(sent) + "<br>Received: " + formatter.format(received);
   }
   return "ID: " + d.id  + "<br>sent: " + formatter.format(sent) + "<br>received: " + formatter.format(received);
 }
@@ -227,11 +229,11 @@ function selected_tooltip(d) {
 
 
   if (committees.has(d.id)) {
-    return toTitleCase(committees.get(d.id).CMTE_NAME) + "<br>Displaying " + formatter.format(sent) + " contributions out of " + formatter.format(total_sent) + "<br>Displaying " + formatter.format(received) + " received contributions out of " + formatter.format(total_received);
+    return toTitleCase(committees.get(d.id).CMTE_NAME) + "<br>Contributed: showing " + formatter.format(parseFloat(sent)) + " out of " + formatter.format(parseFloat(total_sent)) + " (" + ((parseFloat(sent)/(parseFloat(total_sent) + 0.0001))*100).toFixed(2).toString() + "%)" + "<br>Received: showing " + formatter.format(parseFloat(received)) + " out of " + formatter.format(parseFloat(total_received))  + " (" + ((parseFloat(received)/(parseFloat(total_received)+0.0001))*100).toFixed(2).toString() + "%)";
   } else if (candidates.has(d.id)) {
-    return toTitleCase(candidates.get(d.id).CAND_NAME) + "<br>Displaying " + formatter.format(sent) + " contributions out of " + formatter.format(total_sent) + "<br>Displaying " + formatter.format(received) + " received contributions out of " + formatter.format(total_received);
+    return toTitleCase(candidates.get(d.id).CAND_NAME) + "<br>Contributed: showing " + formatter.format(parseFloat(sent)) + " out of " + formatter.format(parseFloat(total_sent)) + " (" + ((parseFloat(sent)/(parseFloat(total_sent) + 0.0001))*100).toFixed(2).toString() + "%)" + "<br>Received: showing " + formatter.format(parseFloat(received)) + " out of " + formatter.format(parseFloat(total_received))  + " (" + ((parseFloat(received)/(parseFloat(total_received)+0.0001))*100).toFixed(2).toString() + "%)";
   }
-  return "ID: " + d.id  + "<br>Displaying " + formatter.format(sent) + " contributions out of " + formatter.format(total_sent) + "<br>Displaying " + formatter.format(received) + " received contributions out of " + formatter.format(total_received);
+  return "ID: " + d.id  + "<br>Contributed: showing " + formatter.format(parseFloat(sent)) + " out of " + formatter.format(parseFloat(total_sent)) + " (" + ((parseFloat(sent)/(parseFloat(total_sent) + 0.0001))*100).toFixed(2).toString() + "%)" + "<br>Received: showing " + formatter.format(parseFloat(received)) + " out of " + formatter.format(parseFloat(total_received))  + " (" + ((parseFloat(received)/(parseFloat(total_received)+0.0001))*100).toFixed(2).toString() + "%)" ;
 }
 // Define the div for the tooltip
 var node_tip = d3.tip()
@@ -282,7 +284,6 @@ function Update_year(year){
   .then(function(dataset) {
      console.log("committee")
     dataset.forEach((item, i) => {
-      Committee_Tags.push({"label":item.CMTE_NAME,"value":item.CMTE_ID});
       committees.set(item.CMTE_ID, item)
     });
   })
@@ -293,7 +294,6 @@ function Update_year(year){
   .then(function(dataset) {
     console.log("candidate")
     dataset.forEach((item, i) => {
-      Candidate_Tags.push({"label":item.CAND_NAME,"value":item.CAND_ID});
       candidates.set(item.CAND_ID, item)
     });
   })
@@ -377,26 +377,51 @@ function Update_year(year){
       }
 
 
+      Candidate_Tags = Array.from(allNodes.keys()).filter(i => candidates.has(i)).map(function(e, i) {
+        var cand = candidates.get(e);
+        return {'label':cand.CAND_NAME, 'value':e};
+      });
+
+      Committee_Tags = Array.from(allNodes.keys()).filter(i => committees.has(i)).map(function(e, i) {
+        var comm = committees.get(e);
+        return {'label':comm.CMTE_NAME, 'value':e};
+      });
+
       $( function() {
         $( "#can_tags" ).autocomplete({
           minLength: 3,
           source: Candidate_Tags,
-          select: function(event, ui) {selectCandidate(ui.item.value)},
+          select: function(event, ui) {
+            selectCandidate(ui.item.value);
+            $(this).val("");
+            return false;
+          },
         });
       });
       $( function() {
         $( "#com_tags" ).autocomplete({
           minLength: 3,
           source: Committee_Tags,
-          select: function(event, ui) {selectCommittee(ui.item.value)},
+          select: function(event, ui) {
+            selectCommittee(ui.item.value);
+            $(this).val("");
+            return false;
+          },
         });
       });
       console.log("done loading")
 
 
       // For Testing
-      console.log(allNodes.values().next().value)
-      selectedNode = allNodes.values().next().value;
+      if (allNodes.get(current_id)){
+        selectedNode = allNodes.get(current_id)
+       }
+      else {
+        console.log(allNodes.values().next().value)
+        selectedNode = allNodes.values().next().value
+        current_id = ''
+      }
+      
       selectedNode.fx = width / 2;
       selectedNode.fy = height / 2
       //selectedNode.group = 2
@@ -606,6 +631,8 @@ function updateVisualization() {
 }
 
 function selectNode(d) {
+  console.log(d.id)
+  current_id = d.id
   simulation.stop()
   //console.log(simulation.nodes());
   delete selectedNode.fx
@@ -630,6 +657,7 @@ function selectCandidate(id) {
   // var select = document.getElementById("candidate")
   // var element = select.options[select.selectedIndex]
   // var id = element.value
+  console.log(id)
   var node = allNodes.get(id)
   selectNode(node)
 }
@@ -641,3 +669,53 @@ function selectCommittee(id) {
   var node = allNodes.get(id)
   selectNode(node)
 }
+
+
+var mySlider = new rSlider({
+  target: '#sampleSlider',
+  values: [1980,1982,1984,1986,1988,1990,1992,1994,1996,1998,2000,2002,2004,2006,2008,2010,2012,2014,2016,2018],
+  range: false,
+  tooltip: true,
+  scale: true,
+  labels: false,
+  onChange: function (vals) {
+      Update_year(vals);
+      },
+  set: [2018],
+});
+
+
+// create a list of keys
+var keys = [
+  {"label":"Democratic Candidate","value":"#80c0ff"},
+  {"label":"Republican Candidate","value":"#ff8080"},
+  {"label":"Other/Independent Candidate","value":"#d080ff"},
+  {"label":"Democratic Committee","value":"#0380fc"},
+  {"label":"Republican Committee","value":"#fc0303"},
+  {"label":"Other/Independent Committee","value":"#a103fc"},
+  {"label":"Unknown","value":"#80ffa8"}
+]
+
+// Add one dot in the legend for each name.
+var size = 20
+svg.selectAll("mydots")
+  .data(keys)
+  .enter()
+  .append("rect")
+    .attr("x", 20)
+    .attr("y", function(d,i){ return 20 + i*(size+5)}) // 100 is where the first dot appears. 25 is the distance between dots
+    .attr("width", size/2)
+    .attr("height", size/2)
+    .style("fill", function(d){ return d.value});
+
+// Add one dot in the legend for each name.
+svg.selectAll("mylabels")
+  .data(keys)
+  .enter()
+  .append("text")
+    .attr("x", 20 + size/1.5)
+    .attr("y", function(d,i){ return 20 + i*(size+5) + (size/2.5)}) // 100 is where the first dot appears. 25 is the distance between dots
+    .text(function(d){ return d.label})
+    .attr("text-anchor", "left")
+    .style("font-weight","bold")
+    .style("font-size", "10px");
