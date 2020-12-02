@@ -662,7 +662,13 @@ function updateVisualization() {
 }
 
 function selectNode(d) {
-  console.log(d.id)
+  if (committees.has(d.id)) {
+    var div = document.getElementById('viz_title');
+    div.innerHTML = '<h4>'+committees.get(d.id).CMTE_NAME+'</h4>';
+  } else if (candidates.has(d.id)) {
+    var div = document.getElementById('viz_title');
+    div.innerHTML = '<h4>'+candidates.get(d.id).CAND_NAME+'</h4>';
+  }
   current_id = d.id
   simulation.stop()
   //console.log(simulation.nodes());
