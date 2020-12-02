@@ -644,13 +644,14 @@ function updateVisualization() {
       })
       .on('mouseout', node_tip.hide);
 
-    linkEnter.on('mouseover', function(d) {
-        var element = document.getElementById(d.source.id + d.target.id)
-        if (d.source.id === selectedNode.id || d.target.id === selectedNode.id) {
-          link_tip.show(d, element)
-        }
-      })
-      .on('mouseout', link_tip.hide);
+    // Creates hover over text on edges (link_tip, which is currently set to transaction $)
+    // linkEnter.on('mouseover', function(d) {
+    //     var element = document.getElementById(d.source.id + d.target.id)
+    //     if (d.source.id === selectedNode.id || d.target.id === selectedNode.id) {
+    //       link_tip.show(d, element)
+    //     }
+    //   })
+    //   .on('mouseout', link_tip.hide);
 
     nodeEnter.on('click', function(d) {
       selectNode(d)
