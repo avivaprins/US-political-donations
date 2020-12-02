@@ -432,9 +432,9 @@ function Update_year(year){
       else {
         console.log(allNodes.values().next().value)
         selectedNode = allNodes.values().next().value
-        if(!current_id){
+        if(current_id){
           var div = document.getElementById('comment');
-          div.innerHTML += '<div class="alert warning"><span class="closebtn" onclick="this.parentElement.style.display="none";">&times;</span><strong>Warning!</strong><br>No Entity with ID:'+current_id+'.</div>';
+          div.innerHTML += '<div class="alert warning"><span class="closebtn">&times;</span><strong>Warning!</strong><br>No Entity with ID:'+current_id+'.</div>';
         }
         current_id = ''
       }
@@ -478,7 +478,18 @@ function Update_year(year){
 
 var div = document.getElementById('comment');
 
-div.innerHTML += '<div class="alert success"><span class="closebtn" onclick="this.parentElement.style.display="none";">&times;</span><strong>Success!</strong><br>Loaded Data for Year ' + year.toString() + '.</div>';
+div.innerHTML += '<div class="alert success"><span class="closebtn">&times;</span><strong>Success!</strong><br>Loaded Data for Year ' + year.toString() + '.</div>';
+
+var close = document.getElementsByClassName("closebtn");
+var i;
+
+for (i = 0; i < close.length; i++) {
+  close[i].onclick = function(){
+    var div = this.parentElement;
+    div.style.opacity = "0";
+    setTimeout(function(){ div.style.display = "none"; }, 600);
+  }
+}
 
 }
 
@@ -671,8 +682,17 @@ function selectNode(d) {
   link_tip.hide()
   //console.log(simulation.nodes());
   var div = document.getElementById('comment');
-  div.innerHTML += '<div class="alert success"><span class="closebtn" onclick="this.parentElement.style.display="none";">&times;</span><strong>Success!</strong><br>Selected Node with ID:'+current_id+'.</div>';
-  
+  div.innerHTML += '<div class="alert success"><span class="closebtn">&times;</span><strong>Success!</strong><br>Selected Node with ID:'+current_id+'.</div>';
+  var close = document.getElementsByClassName("closebtn");
+  var i;
+
+  for (i = 0; i < close.length; i++) {
+    close[i].onclick = function(){
+      var div = this.parentElement;
+      div.style.opacity = "0";
+      setTimeout(function(){ div.style.display = "none"; }, 600);
+    }
+  }
 }
 
 function selectCandidate(id) {
@@ -701,10 +721,10 @@ var mySlider = new rSlider({
   scale: true,
   labels: false,
   onChange: function (vals) {
-      console.log(vals.split(","))
-      // Update_year(vals);
+      // console.log(vals.split(","))
+      Update_year(vals);
       },
-  set: [2016,2018],
+  set: [2018],
 });
 
 
