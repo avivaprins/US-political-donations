@@ -3,27 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <title>US Political Donations</title>
-    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="./css/style.css">
     <link rel="stylesheet" href="./css/graph.css">
+    <link rel="stylesheet" href="./css/rSlider.min.css">
     <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-    <link rel="stylesheet" href="./css/rSlider.min.css">
 </head>
 <body class="w3-light-grey">
     <div class="w3-main" align="center" style="margin-top:43px;">
 
-        <div id="comment" class="w3-card">
-          Hello
+        <!-- Top container -->
+<div class="w3-bar w3-top w3-black w3-large" align="right" style="z-index:4">
+    <button id="myBtn" class="button button2" align="left">Instructions</button>
+  </div>
+  
+  <!-- The Modal -->
+  <div id="myModal" class="modal">
+  
+    <!-- Modal content -->
+    <div class="modal-content">
+      <div class="modal-header">
+        <span class="close">&times;</span>
+        <h2>Instructions</h2>
+      </div>
+      <div class="modal-body">
+        <p>Welcome to our visualization of political donations in the United States. Here, you can explore how committees and candidates transfer money from 1980-2018.</p>
+        <p><h3 align="center">Interactive Components</h3>
+        <p>Pick an election year to consider using the slider at the top of the page.</p>
+        <p>You can search for a particular candidate or committee using the search feature. Type in at least three characters to select from the drop-down list.</p>
+        <p>You can also re-center the graph by clicking on a node.</p>
+        <p>Not every contribution in the dataset is shown, just the top contributions. The degree of each node is limited to 30.</p>
+        <p><b>Data Source</b> (last updated on 26-10-2020): 
+            <a href="https://www.fec.gov/data/">Federal Election Commission (FEC)</a>
+            </p>
+        <p><b>Authors:</b> Aviva Prins, Ryan Sullivan, Sai Yerrameddy, Tanya Shroff</p>
+      </div>
+    </div>
+  
+  </div>
+
+        <div id="comment" class="w3-card" style="width:300px;">
+            <h4>Debug Messages</h4>
         </div>
         
           <!-- Header -->
-          <header class="w3-container" style="padding-top:22px;padding-bottom:5px">
-            <h1><b><i class="fa fa-dashboard"></i> US Political Donations (1980-2018)</b></h1>
-          </header>
+        <header class="w3-container" style="padding-top:22px;padding-bottom:5px">
+            <h1><b><i class="fa fa-dashboard"></i>Visualization of Political Donations in the United States</b></h1>
+            <h6>by Aviva Prins, Ryan Sullivan, Sai Yerrameddy, Tanya Shroff</h6>
+        </header>
         
-        <div class="w3-panel w3-card w3-hover-shadow" align="center" style="width:960px;padding-left:80px;padding-right:100px">
+        <div class="w3-panel w3-card w3-hover-shadow" align="center" style="width:1080px;padding-left:80px;padding-right:100px">
           <p style="padding-top:10px"><b>Range of Years</b></p>
           <input type="text" id="sampleSlider"/>
             <div class="ui-widget" style="padding-top:10px;padding-bottom:20px;">
@@ -34,12 +65,11 @@
             </div>
         </div>
         
-        <div class="w3-panel w3-card w3-hover-shadow" style="padding-top:20px;width:1280px;height:960px">
+        <div class="w3-panel w3-card w3-hover-shadow" style="padding-top:20px;width:1280px;height:1120px">
         <div align="center"><h4>Network Layout</h4></div>
-            <svg id="Network" width="1120" height="840" style="border: 1px solid #777;">
-        </svg>
+            <div id="container"></div>
         </div>
-                
+        <!-- <svg id="Network" width="1120" height="1000" style="border: 1px solid #777;"></svg> -->
 
 
 </body>

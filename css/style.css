@@ -1,8 +1,4 @@
-html,body,h1,h2,h3,h4,h5 {font-family: "Raleway", sans-serif}
-svg > g > g:last-child { pointer-events: none }
-div.google-visualization-tooltip { pointer-events: none }
 
-/* The Modal (background) */
 .modal {
   display: none; /* Hidden by default */
   position: fixed; /* Stay in place */
@@ -121,3 +117,32 @@ div.google-visualization-tooltip { pointer-events: none }
 #range-label {
     text-align: center;
 }
+
+.alert {
+    padding: 5px;
+    background-color: #f44336;
+    color: white;
+    opacity: 1;
+    transition: opacity 0.6s;
+    margin-bottom: 5px;
+  }
+  
+  .alert.success {background-color: #4CAF50;}
+  .alert.info {background-color: #2196F3;}
+  .alert.warning {background-color: #ff9800;}
+  
+  .closebtn {
+    margin-left: 5px;
+    color: white;
+    font-weight: bold;
+    float: right;
+    font-size: 22px;
+    line-height: 20px;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+  
+  .closebtn:hover {
+    color: black;
+  }
+  

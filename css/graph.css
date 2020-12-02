@@ -1,3 +1,10 @@
+div#container {
+  height: 1000px;
+  width: 1120px;
+  overflow:auto;
+  border: 1px solid #777;
+}
+
 .link {
   stroke: #ccc;
 }

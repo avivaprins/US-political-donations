@@ -14,7 +14,15 @@ let repParties = new Set(["REP", "CRV", "NJC"])
 // console.log(demParties)
 // console.log(repParties)
 
-var svg = d3.select('svg#Network');
+// var svg = d3.select('svg#Network');
+
+var container = d3.select("#container");
+        
+var svg = container.append("svg")
+                   .attr("width", 1100)
+                   .attr("height", 1200);;
+
+
 var width = +svg.attr('width');
 var height = +svg.attr('height');
 var current_id = '';
@@ -262,7 +270,12 @@ var link_tip = d3.tip()
 svg.call(link_tip);
 
 
-
+// var lowEnd = 1;
+// var highEnd = 25;
+// var arr = [];
+// while(lowEnd <= highEnd){
+//    arr.push(lowEnd++);
+// }
 
 function Update_year(year){
   var temp = year.toString().slice(-2);
@@ -419,6 +432,10 @@ function Update_year(year){
       else {
         console.log(allNodes.values().next().value)
         selectedNode = allNodes.values().next().value
+        if(!current_id){
+          var div = document.getElementById('comment');
+          div.innerHTML += '<div class="alert warning"><span class="closebtn" onclick="this.parentElement.style.display="none";">&times;</span><strong>Warning!</strong><br>No Entity with ID:'+current_id+'.</div>';
+        }
         current_id = ''
       }
       
@@ -459,10 +476,12 @@ function Update_year(year){
 
 
 
+var div = document.getElementById('comment');
 
-
+div.innerHTML += '<div class="alert success"><span class="closebtn" onclick="this.parentElement.style.display="none";">&times;</span><strong>Success!</strong><br>Loaded Data for Year ' + year.toString() + '.</div>';
 
 }
+
 
 function updateVisualization() {
     linkScale.domain(d3.extent(immediateLinks(), function(d){ return d.value;}));
@@ -651,6 +670,9 @@ function selectNode(d) {
   node_tip.hide()
   link_tip.hide()
   //console.log(simulation.nodes());
+  var div = document.getElementById('comment');
+  div.innerHTML += '<div class="alert success"><span class="closebtn" onclick="this.parentElement.style.display="none";">&times;</span><strong>Success!</strong><br>Selected Node with ID:'+current_id+'.</div>';
+  
 }
 
 function selectCandidate(id) {
@@ -679,9 +701,10 @@ var mySlider = new rSlider({
   scale: true,
   labels: false,
   onChange: function (vals) {
-      Update_year(vals);
+      console.log(vals.split(","))
+      // Update_year(vals);
       },
-  set: [2018],
+  set: [2016,2018],
 });
 
 
@@ -719,3 +742,50 @@ svg.selectAll("mylabels")
     .attr("text-anchor", "left")
     .style("font-weight","bold")
     .style("font-size", "10px");
+
+$(document).ready(function () {
+  var top = $('#comment').offset().top - parseFloat($('#comment').css('marginTop').replace(/auto/, 0));
+
+  $(window).scroll(function (event) {
+    // what the y position of the scroll is
+    var y = $(this).scrollTop();
+
+    // whether that's below the form
+    if (y >= top) {
+      // if so, ad the fixed class
+      $('#comment').addClass('fixed');
+    } else {
+      // otherwise remove it
+      $('#comment').removeClass('fixed');
+    }
+  });
+});
+
+
+// Get the modal
+var modal = document.getElementById("myModal");
+
+// Get the button that opens the modal
+var btn = document.getElementById("myBtn");
+
+// Get the <span> element that closes the modal
+var span = document.getElementsByClassName("close")[0];
+
+// When the user clicks the button, open the modal
+btn.onclick = function() {
+  modal.style.display = "block";
+}
+
+// When the user clicks on <span> (x), close the modal
+span.onclick = function() {
+  modal.style.display = "none";
+}
+
+// When the user clicks anywhere outside of the modal, close it
+window.onclick = function(event) {
+  if (event.target == modal) {
+    modal.style.display = "none";
+  }
+}
+
+modal.style.display = "block";
