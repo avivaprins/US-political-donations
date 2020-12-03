@@ -236,10 +236,13 @@ function selected_tooltip(d) {
   });
 
 
+  let percent_contributed = parseFloat(total_sent) == 0 ? "100.00" : ((parseFloat(sent)/(parseFloat(total_sent) + 0.0001))*100).toFixed(2).toString()
+  let percent_received = parseFloat(total_received) == 0 ? "100.00" : ((parseFloat(received)/(parseFloat(total_received) + 0.0001))*100).toFixed(2).toString()
+
   if (committees.has(d.id)) {
-    return toTitleCase(committees.get(d.id).CMTE_NAME) + "<br>Contributed: showing " + formatter.format(parseFloat(sent)) + " out of " + formatter.format(parseFloat(total_sent)) + " (" + ((parseFloat(sent)/(parseFloat(total_sent) + 0.0001))*100).toFixed(2).toString() + "%)" + "<br>Received: showing " + formatter.format(parseFloat(received)) + " out of " + formatter.format(parseFloat(total_received))  + " (" + ((parseFloat(received)/(parseFloat(total_received)+0.0001))*100).toFixed(2).toString() + "%)";
+    return toTitleCase(committees.get(d.id).CMTE_NAME) + "<br>Contributed: showing " + formatter.format(parseFloat(sent)) + " out of " + formatter.format(parseFloat(total_sent)) + " (" + percent_contributed + "%)" + "<br>Received: showing " + formatter.format(parseFloat(received)) + " out of " + formatter.format(parseFloat(total_received))  + " (" + percent_received + "%)";
   } else if (candidates.has(d.id)) {
-    return toTitleCase(candidates.get(d.id).CAND_NAME) + "<br>Contributed: showing " + formatter.format(parseFloat(sent)) + " out of " + formatter.format(parseFloat(total_sent)) + " (" + ((parseFloat(sent)/(parseFloat(total_sent) + 0.0001))*100).toFixed(2).toString() + "%)" + "<br>Received: showing " + formatter.format(parseFloat(received)) + " out of " + formatter.format(parseFloat(total_received))  + " (" + ((parseFloat(received)/(parseFloat(total_received)+0.0001))*100).toFixed(2).toString() + "%)";
+    return toTitleCase(candidates.get(d.id).CAND_NAME) + "<br>Contributed: showing " + formatter.format(parseFloat(sent)) + " out of " + formatter.format(parseFloat(total_sent)) + " (" + percent_contributed + "%)" + "<br>Received: showing " + formatter.format(parseFloat(received)) + " out of " + formatter.format(parseFloat(total_received))  + " (" + percent_received + "%)";
   }
   return "ID: " + d.id  + "<br>Contributed: showing " + formatter.format(parseFloat(sent)) + " out of " + formatter.format(parseFloat(total_sent)) + " (" + ((parseFloat(sent)/(parseFloat(total_sent) + 0.0001))*100).toFixed(2).toString() + "%)" + "<br>Received: showing " + formatter.format(parseFloat(received)) + " out of " + formatter.format(parseFloat(total_received))  + " (" + ((parseFloat(received)/(parseFloat(total_received)+0.0001))*100).toFixed(2).toString() + "%)" ;
 }
@@ -486,6 +489,13 @@ function Update_year(years){
 var div = document.getElementById('comment');
 
 div.innerHTML += '<div class="alert success"><span class="closebtn">&times;</span><strong>Success!</strong><br>Loaded Data from ' + years[0].toString() + ' to ' + years[1].toString() + '.</div>';
+setTimeout(
+    function() {
+        div.innerHTML = ''
+    },
+    5000
+);
+
 
 var close = document.getElementsByClassName("closebtn");
 var i;
