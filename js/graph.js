@@ -30,7 +30,10 @@ var current_id = '';
 console.log(width,height)
 
 var colorScale = d3.scaleOrdinal(d3.schemeTableau10);
-var linkColorScale= d3.scaleSequentialSqrt(d3.interpolate("lightgrey", "black"))
+var linkColorScale= d3.scaleSequentialSqrt(d3.interpolate("wheat", "brown"))
+var demColorScale= d3.scaleSequentialSqrt(d3.interpolate("powderblue", "royalblue"))
+var repColorScale= d3.scaleSequentialSqrt(d3.interpolate("lightpink", "crimson"))
+var unkColorScale= d3.scaleSequentialSqrt(d3.interpolate("thistle", "blueviolet"))
 
 var linkScale = d3.scaleLinear().range([1,3]);
 var selectedNode;
@@ -170,7 +173,12 @@ function extractNodes(links) {
 var simulation;
 
 function toTitleCase(sentence) {
+  console.log(sentence)
   return sentence.toLowerCase().split(" ").map((word) => {
+      console.log(word.length)
+      if (word.length == 0) {
+        return ""
+      }
       return word[0].toUpperCase() + word.substring(1);
     }).join(" ");
 }
@@ -514,10 +522,12 @@ for (i = 0; i < close.length; i++) {
 function updateVisualization() {
     linkScale.domain(d3.extent(immediateLinks(), function(d){ return d.value;}));
     var extent = d3.extent(immediateLinks(), function(d){ return parseFloat(d.value);});
-    extent[0] = 0;
     console.log(extent)
 
     linkColorScale.domain(extent);
+    demColorScale.domain(extent);
+    repColorScale.domain(extent);
+    unkColorScale.domain(extent);
 
     var links = linkG.selectAll('.link')
       .data(includedLinks(), function(d){
@@ -549,6 +559,25 @@ function updateVisualization() {
       if (d.type === "far") {
         return "black"
       } else {
+        var party;
+        var nodeid;
+        if (d.target === selectedNode) {
+          nodeid = d.source.id
+        } else {
+          nodeid = d.target.id
+        }
+        if (committees.has(nodeid)) {
+          party = committees.get(nodeid).CMTE_PTY_AFFILIATION
+        } else if (candidates.has(nodeid)) {
+          party = candidates.get(nodeid).CAND_PTY_AFFILIATION
+        }
+        if (demParties.has(party)) {
+          return demColorScale(d.value)
+        } else if (repParties.has(party)) {
+          return repColorScale(d.value)
+        } else {
+          return unkColorScale(d.value);
+        }
         return linkColorScale(d.value);
       }
     })
@@ -602,7 +631,7 @@ function updateVisualization() {
       } else if (node.type === "close") {
         return 1.0;
       } else if (node.type === "far") {
-        return 0.05;
+        return 0.1;
       }
     })
     .attr('z-index', function(d) {
