@@ -17,7 +17,7 @@ let repParties = new Set(["REP", "CRV", "NJC"])
 // var svg = d3.select('svg#Network');
 
 var container = d3.select("#container");
-        
+
 var svg = container.append("svg")
                    .attr("width", 1100)
                    .attr("height", 1200);;
@@ -277,9 +277,14 @@ svg.call(link_tip);
 //    arr.push(lowEnd++);
 // }
 
-function Update_year(year){
-  var temp = year.toString().slice(-2);
-  console.log(temp);
+function Update_year(years){
+  console.log(years)
+  start_year = parseInt(years[0])
+  end_year = parseInt(years[1])
+  console.log(start_year)
+  console.log(end_year)
+  //var temp = year.toString().slice(-2);
+  //console.log(temp);
 
   var Candidate_Tags = [];
   var Committee_Tags = [];
@@ -290,10 +295,12 @@ function Update_year(year){
   committees = new Map();
   candidates = new Map();
 
-
-  Promise.all([
-    d3.dsv("|", './data/committees/cm' + temp + '.txt'),
-  ]).then(all_data => d3.merge(all_data))
+  var all_years = [1980,1982,1984,1986,1988,1990,1992,1994,1996,1998,2000,2002,2004,2006,2008,2010,2012,2014,2016,2018,2020]
+  all_years = all_years.slice(all_years.indexOf(start_year), all_years.indexOf(end_year)+1)
+  all_years = all_years.map(year => year.toString().slice(-2))
+  Promise.all(
+    all_years.map(year => d3.dsv("|", './data/committees/cm' + year.toString() + '.txt'))
+  ).then(all_data => d3.merge(all_data))
   .then(function(dataset) {
      console.log("committee")
     dataset.forEach((item, i) => {
@@ -301,9 +308,9 @@ function Update_year(year){
     });
   })
 
-  Promise.all([
-      d3.dsv("|", './data/candidates/cn' + temp + '.txt'),
-  ]).then(all_data => d3.merge(all_data))
+  Promise.all(
+      all_years.map(year => d3.dsv("|", './data/candidates/cn' + year + '.txt'))
+  ).then(all_data => d3.merge(all_data))
   .then(function(dataset) {
     console.log("candidate")
     dataset.forEach((item, i) => {
@@ -315,9 +322,9 @@ function Update_year(year){
   // console.log(height)
 
   //TODO fix selected node at center
-  Promise.all([
-      d3.dsv("|", './data/transactions/agg_cm_trans/cm_trans' + temp + '.txt'),
-      ]).then(all_data => d3.merge(all_data))
+  Promise.all(
+      all_years.map(year => d3.dsv("|", './data/transactions/agg_cm_trans/cm_trans' + year + '.txt'))
+  ).then(all_data => d3.merge(all_data))
   .then(function(dataset) {
       //dataset = dataset.slice(0,10)
       //console.log(dataset)
@@ -438,7 +445,7 @@ function Update_year(year){
         }
         current_id = ''
       }
-      
+
       selectedNode.fx = width / 2;
       selectedNode.fy = height / 2
       //selectedNode.group = 2
@@ -478,7 +485,7 @@ function Update_year(year){
 
 var div = document.getElementById('comment');
 
-div.innerHTML += '<div class="alert success"><span class="closebtn">&times;</span><strong>Success!</strong><br>Loaded Data for Year ' + year.toString() + '.</div>';
+div.innerHTML += '<div class="alert success"><span class="closebtn">&times;</span><strong>Success!</strong><br>Loaded Data from ' + years[0].toString() + ' to ' + years[1].toString() + '.</div>';
 
 var close = document.getElementsByClassName("closebtn");
 var i;
@@ -723,13 +730,13 @@ function selectCommittee(id) {
 var mySlider = new rSlider({
   target: '#sampleSlider',
   values: [1980,1982,1984,1986,1988,1990,1992,1994,1996,1998,2000,2002,2004,2006,2008,2010,2012,2014,2016,2018,2020],
-  range: false,
+  range: true,
   tooltip: true,
   scale: true,
   labels: false,
   onChange: function (vals) {
-      // console.log(vals.split(","))
-      Update_year(vals);
+      let years = vals.split(",")
+      Update_year(years);
       },
   set: [2020],
 });
