@@ -1,11 +1,12 @@
 console.log("Loaded graph.js script")
 
-var allNodes = new Map()
-var allLinks = new Map()
-var nodeGraph = new Map()
-var linkGraph = new Map()
-let committees = new Map()
-let candidates = new Map()
+// node id refers either to CAND_ID or CMTE_ID of a node
+var allNodes = new Map() // Maps node id -> data node
+var allLinks = new Map() // Maps string concatentation of source node id + target node id -> force simulation link
+var nodeGraph = new Map() // Maps node id -> Set of node ids of all nodes that receive money from key node
+var linkGraph = new Map() // Maps node id -> Set of link data objects that start or end at key node
+let committees = new Map() // Maps node id -> node information (Only contains committee nodes)
+let candidates = new Map() // Maps node id -> node information (Only contains candidate nodes)
 
 
 let demParties = new Set(["DEM", "DNL", "DFL", "LBL", "NDP", "THD", "PRO", "PPD"])
@@ -777,7 +778,7 @@ var mySlider = new rSlider({
       let years = vals.split(",")
       Update_year(years);
       },
-  set: [2018,2020],
+  set: [2020],
 });
 
 
