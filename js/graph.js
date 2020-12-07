@@ -778,7 +778,7 @@ var mySlider = new rSlider({
       let years = vals.split(",")
       Update_year(years);
       },
-  set: [2020],
+  set: [2018, 2020],
 });
 
 
