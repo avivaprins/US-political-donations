@@ -492,7 +492,6 @@ function Update_year(years){
       setTimeout(function(){ div.style.display = "none"; }, 600);
     }
   }
-  console.log(all_transactions)
 }
 
 
