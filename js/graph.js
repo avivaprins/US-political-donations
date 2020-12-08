@@ -311,7 +311,7 @@ function Update_year(years){
   all_years = all_years.slice(all_years.indexOf(start_year), all_years.indexOf(end_year)+1)
   all_years = all_years.map(year => year.toString().slice(-2))
   Promise.all(
-    all_years.map(year => d3.dsv("|", './data/committees/cm' + year.toString() + '.txt'))
+    all_years.map(year => d3.dsv("|", '../data/committees/cm' + year.toString() + '.txt'))
   ).then(all_data => d3.merge(all_data))
   .then(function(dataset) {
      console.log("committee")
@@ -321,7 +321,7 @@ function Update_year(years){
   })
 
   Promise.all(
-      all_years.map(year => d3.dsv("|", './data/candidates/cn' + year + '.txt'))
+      all_years.map(year => d3.dsv("|", '../data/candidates/cn' + year + '.txt'))
   ).then(all_data => d3.merge(all_data))
   .then(function(dataset) {
     console.log("candidate")
@@ -335,11 +335,11 @@ function Update_year(years){
 
   //TODO fix selected node at center
   Promise.all(
-      all_years.map(year => d3.dsv("|", './data/transactions/agg_cm_trans/cm_trans' + year + '.txt'))
+      all_years.map(year => all_transactions[all_years.indexOf(year)])
   ).then(all_data => d3.merge(all_data))
   .then(function(dataset) {
       //dataset = dataset.slice(0,10)
-      //console.log(dataset)
+      console.log(dataset.length)
 
       var k = 0
       for (i in dataset) {
@@ -778,7 +778,7 @@ var mySlider = new rSlider({
       let years = vals.split(",")
       Update_year(years);
       },
-  set: [2018, 2020],
+  set: [1980, 2020],
 });
 
 
