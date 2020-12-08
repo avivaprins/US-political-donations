@@ -3,7 +3,6 @@ console.log("Loaded graph.js script")
 // node id refers either to CAND_ID or CMTE_ID of a node
 var allNodes = new Map() // Maps node id -> data node
 var allLinks = new Map() // Maps string concatentation of source node id + target node id -> force simulation link
-var nodeGraph = new Map() // Maps node id -> Set of node ids of all nodes that receive money from key node
 var linkGraph = new Map() // Maps node id -> Set of link data objects that start or end at key node
 let committees = new Map() // Maps node id -> node information (Only contains committee nodes)
 let candidates = new Map() // Maps node id -> node information (Only contains candidate nodes)
@@ -153,11 +152,6 @@ function includedLinks() {
 function immediateLinks() {
   //console.log(selectedNode)
   var testLinks = Array.from(linkGraph.get(selectedNode.id))
-  testLinks.forEach(link => {
-    link.type = "close"
-    link.source.type = "close"
-    link.target.type = "close"
-  });
   testLinks.sort(sortLinks)
   return testLinks.slice(Math.max(testLinks.length - maximumConnections, 0))
 }
@@ -174,9 +168,7 @@ function extractNodes(links) {
 var simulation;
 
 function toTitleCase(sentence) {
-  console.log(sentence)
   return sentence.toLowerCase().split(" ").map((word) => {
-      console.log(word.length)
       if (word.length == 0) {
         return ""
       }
@@ -230,7 +222,13 @@ function selected_tooltip(d) {
 
   var total_sent = 0.0;
   var total_received = 0.0;
-  var adjacentNodes = nodeGraph.get(d.id)
+  var adjacentNodes = Array.from(linkGraph.get(d.id)).map(function(link){
+    if (link.source === d.id) {
+      return link.target.id;
+    } else {
+      return link.source.id;
+    }
+  })
   adjacentNodes.forEach((node, i) => {
     links = linkGraph.get(node)
     links.forEach((link, i) => {
@@ -303,21 +301,15 @@ function Update_year(years){
   var Committee_Tags = [];
   allNodes = new Map();
   allLinks = new Map();
-  nodeGraph = new Map();
   linkGraph = new Map();
 
   var all_years = [1980,1982,1984,1986,1988,1990,1992,1994,1996,1998,2000,2002,2004,2006,2008,2010,2012,2014,2016,2018,2020]
   selected_years = all_years.slice(all_years.indexOf(start_year), all_years.indexOf(end_year)+1)
-  console.log(selected_years)
   // if a year's data is not loaded yet, load it
   for (var i = 0; i < selected_years.length; i++) {
     const year = selected_years[i];
-    console.log(year)
     if (all_transactions[all_years.indexOf(year)] == undefined) {
       counter++;
-      console.log(all_years.indexOf(year))
-      console.log(all_transactions)
-      console.log("missing " + counter + " times")
       d3.dsv("|", './data/transactions/agg_cm_trans/cm_trans' + year.toString().slice(-2) + '.txt').then(function(data) {
         all_transactions[all_years.indexOf(year)] = data;
         Update_year(years)
@@ -336,7 +328,7 @@ function Update_year(years){
   //TODO fix selected node at center
   var dataset = d3.merge(all_transactions.slice(start_index, end_index+1))
   //dataset = dataset.slice(0,10)
-
+  console.log("merged")
   var k = 0
   for (i in dataset) {
     d = dataset[i]
@@ -358,13 +350,10 @@ function Update_year(years){
       node1 = {
         "id": d.SRC_ID,
         "group": group,
-        "freq": 0,
       }
       allNodes.set(d.SRC_ID, node1)
-      nodeGraph.set(d.SRC_ID, new Set())
       linkGraph.set(d.SRC_ID, new Set())
     }
-    node1.freq+=1
     node2 = allNodes.get(d.TARGET_ID)
     if (node2 === undefined) {
       var group = 0;
@@ -376,15 +365,10 @@ function Update_year(years){
       node2 = {
         "id": d.TARGET_ID,
         "group": group,
-        "freq": 0,
       }
       allNodes.set(d.TARGET_ID, node2)
-      nodeGraph.set(d.TARGET_ID, new Set())
       linkGraph.set(d.TARGET_ID, new Set())
     }
-    node2.freq+=1
-    nodeGraph.get(d.SRC_ID).add(d.TARGET_ID)
-    nodeGraph.get(d.TARGET_ID).add(d.SRC_ID)
 
     let value = parseFloat(d.SUM)
     var link = allLinks.get(d.SRC_ID + "-" + d.TARGET_ID)
@@ -395,22 +379,20 @@ function Update_year(years){
           "value": value,
       }
       allLinks.set(d.SRC_ID + "-" + d.TARGET_ID, link)
+      linkGraph.get(d.TARGET_ID).add(link)
+      linkGraph.get(d.SRC_ID).add(link)
     } else {
       link.value += value;
-      continue;
     }
-
-    linkGraph.get(d.TARGET_ID).add(link)
-    linkGraph.get(d.SRC_ID).add(link)
   }
 
-
-  Candidate_Tags = Array.from(allNodes.keys()).filter(i => candidates.has(i)).map(function(e, i) {
+  const node_arr = Array.from(allNodes.keys())
+  Candidate_Tags = node_arr.filter(i => candidates.has(i)).map(function(e, i) {
     var cand = candidates.get(e);
     return {'label':cand.CAND_NAME, 'value':e};
   });
 
-  Committee_Tags = Array.from(allNodes.keys()).filter(i => committees.has(i)).map(function(e, i) {
+  Committee_Tags = node_arr.filter(i => committees.has(i)).map(function(e, i) {
     var comm = committees.get(e);
     return {'label':comm.CMTE_NAME, 'value':e};
   });
