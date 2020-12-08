@@ -288,13 +288,14 @@ svg.call(link_tip);
 // while(lowEnd <= highEnd){
 //    arr.push(lowEnd++);
 // }
-
+var counter = 0
 function Update_year(years){
+  if (!doneLoading) {
+    return;
+  }
   console.log(years)
   start_year = parseInt(years[0])
   end_year = parseInt(years[1])
-  console.log(start_year)
-  console.log(end_year)
   //var temp = year.toString().slice(-2);
   //console.log(temp);
 
@@ -304,219 +305,212 @@ function Update_year(years){
   allLinks = new Map();
   nodeGraph = new Map();
   linkGraph = new Map();
-  committees = new Map();
-  candidates = new Map();
 
   var all_years = [1980,1982,1984,1986,1988,1990,1992,1994,1996,1998,2000,2002,2004,2006,2008,2010,2012,2014,2016,2018,2020]
-  all_years = all_years.slice(all_years.indexOf(start_year), all_years.indexOf(end_year)+1)
-  all_years = all_years.map(year => year.toString().slice(-2))
-  Promise.all(
-    all_years.map(year => d3.dsv("|", './data/committees/cm' + year.toString() + '.txt'))
-  ).then(all_data => d3.merge(all_data))
-  .then(function(dataset) {
-     console.log("committee")
-    dataset.forEach((item, i) => {
-      committees.set(item.CMTE_ID, item)
-    });
-  })
+  selected_years = all_years.slice(all_years.indexOf(start_year), all_years.indexOf(end_year)+1)
+  console.log(selected_years)
+  // if a year's data is not loaded yet, load it
+  for (var i = 0; i < selected_years.length; i++) {
+    const year = selected_years[i];
+    console.log(year)
+    if (all_transactions[all_years.indexOf(year)] == undefined) {
+      counter++;
+      console.log(all_years.indexOf(year))
+      console.log(all_transactions)
+      console.log("missing " + counter + " times")
+      d3.dsv("|", './data/transactions/agg_cm_trans/cm_trans' + year.toString().slice(-2) + '.txt').then(function(data) {
+        all_transactions[all_years.indexOf(year)] = data;
+        Update_year(years)
+      });
+      return;
+    }
+  }
 
-  Promise.all(
-      all_years.map(year => d3.dsv("|", './data/candidates/cn' + year + '.txt'))
-  ).then(all_data => d3.merge(all_data))
-  .then(function(dataset) {
-    console.log("candidate")
-    dataset.forEach((item, i) => {
-      candidates.set(item.CAND_ID, item)
-    });
-  })
 
+
+  const start_index = all_years.indexOf(start_year)
+  const end_index = all_years.indexOf(end_year)
   // console.log(width)
   // console.log(height)
 
   //TODO fix selected node at center
-  Promise.all(
-      all_years.map(year => all_transactions[all_years.indexOf(year)])
-  ).then(all_data => d3.merge(all_data))
-  .then(function(dataset) {
-      //dataset = dataset.slice(0,10)
-      console.log(dataset.length)
+  var dataset = d3.merge(all_transactions.slice(start_index, end_index+1))
+  //dataset = dataset.slice(0,10)
 
-      var k = 0
-      for (i in dataset) {
-        d = dataset[i]
-        //console.log(d)
-        if(i === "columns") {
-          break;
-        }
-        if (d.TARGET_ID === undefined || d.SRC_ID === undefined || d.SUM === undefined || isNaN(parseFloat(d.SUM)) || parseFloat(d.SUM) <= 0) {
-          continue;
-        }
-        node1 = allNodes.get(d.SRC_ID)
-        if (node1 === undefined) {
-          var group = 0;
-          if (committees.has(d.SRC_ID)) {
-            group = 1;
-          } else if (candidates.has(d.SRC_ID)) {
-            group = 2
-          }
-          node1 = {
-            "id": d.SRC_ID,
-            "group": group,
-            "freq": 0,
-          }
-          allNodes.set(d.SRC_ID, node1)
-          nodeGraph.set(d.SRC_ID, new Set())
-          linkGraph.set(d.SRC_ID, new Set())
-        }
-        node1.freq+=1
-        node2 = allNodes.get(d.TARGET_ID)
-        if (node2 === undefined) {
-          var group = 0;
-          if (committees.has(d.TARGET_ID)) {
-            group = 1;
-          } else if (candidates.has(d.TARGET_ID)) {
-            group = 2
-          }
-          node2 = {
-            "id": d.TARGET_ID,
-            "group": group,
-            "freq": 0,
-          }
-          allNodes.set(d.TARGET_ID, node2)
-          nodeGraph.set(d.TARGET_ID, new Set())
-          linkGraph.set(d.TARGET_ID, new Set())
-        }
-        node2.freq+=1
-        nodeGraph.get(d.SRC_ID).add(d.TARGET_ID)
-        nodeGraph.get(d.TARGET_ID).add(d.SRC_ID)
-
-        let value = parseFloat(d.SUM)
-        var link = allLinks.get(d.SRC_ID + "-" + d.TARGET_ID)
-        if (link === undefined) {
-          link = {
-              "source": node1,
-              "target": node2,
-              "value": value,
-          }
-          allLinks.set(d.SRC_ID + "-" + d.TARGET_ID, link)
-        } else {
-          link.value += value;
-          continue;
-        }
-
-        linkGraph.get(d.TARGET_ID).add(link)
-        linkGraph.get(d.SRC_ID).add(link)
+  var k = 0
+  for (i in dataset) {
+    d = dataset[i]
+    //console.log(d)
+    if(i === "columns") {
+      break;
+    }
+    if (d.TARGET_ID === undefined || d.SRC_ID === undefined || d.SUM === undefined || isNaN(parseFloat(d.SUM)) || parseFloat(d.SUM) <= 0) {
+      continue;
+    }
+    node1 = allNodes.get(d.SRC_ID)
+    if (node1 === undefined) {
+      var group = 0;
+      if (committees.has(d.SRC_ID)) {
+        group = 1;
+      } else if (candidates.has(d.SRC_ID)) {
+        group = 2
       }
-
-
-      Candidate_Tags = Array.from(allNodes.keys()).filter(i => candidates.has(i)).map(function(e, i) {
-        var cand = candidates.get(e);
-        return {'label':cand.CAND_NAME, 'value':e};
-      });
-
-      Committee_Tags = Array.from(allNodes.keys()).filter(i => committees.has(i)).map(function(e, i) {
-        var comm = committees.get(e);
-        return {'label':comm.CMTE_NAME, 'value':e};
-      });
-
-      $( function() {
-        $( "#can_tags" ).autocomplete({
-          minLength: 3,
-          source: Candidate_Tags,
-          select: function(event, ui) {
-            selectCandidate(ui.item.value);
-            $(this).val("");
-            return false;
-          },
-        });
-      });
-      $( function() {
-        $( "#com_tags" ).autocomplete({
-          minLength: 3,
-          source: Committee_Tags,
-          select: function(event, ui) {
-            selectCommittee(ui.item.value);
-            $(this).val("");
-            return false;
-          },
-        });
-      });
-      console.log("done loading")
-
-
-      // For Testing
-      if (allNodes.get(current_id)){
-        selectedNode = allNodes.get(current_id)
-       }
-      else {
-        console.log(allNodes.values().next().value)
-        selectedNode = allNodes.values().next().value
-        if(current_id){
-          var div = document.getElementById('comment');
-          div.innerHTML += '<div class="alert warning"><span class="closebtn">&times;</span><strong>Warning!</strong><br>No Entity with ID:'+current_id+'.</div>';
-        }
-        current_id = ''
+      node1 = {
+        "id": d.SRC_ID,
+        "group": group,
+        "freq": 0,
       }
+      allNodes.set(d.SRC_ID, node1)
+      nodeGraph.set(d.SRC_ID, new Set())
+      linkGraph.set(d.SRC_ID, new Set())
+    }
+    node1.freq+=1
+    node2 = allNodes.get(d.TARGET_ID)
+    if (node2 === undefined) {
+      var group = 0;
+      if (committees.has(d.TARGET_ID)) {
+        group = 1;
+      } else if (candidates.has(d.TARGET_ID)) {
+        group = 2
+      }
+      node2 = {
+        "id": d.TARGET_ID,
+        "group": group,
+        "freq": 0,
+      }
+      allNodes.set(d.TARGET_ID, node2)
+      nodeGraph.set(d.TARGET_ID, new Set())
+      linkGraph.set(d.TARGET_ID, new Set())
+    }
+    node2.freq+=1
+    nodeGraph.get(d.SRC_ID).add(d.TARGET_ID)
+    nodeGraph.get(d.TARGET_ID).add(d.SRC_ID)
 
-      selectedNode.fx = width / 2;
-      selectedNode.fy = height / 2
-      //selectedNode.group = 2
+    let value = parseFloat(d.SUM)
+    var link = allLinks.get(d.SRC_ID + "-" + d.TARGET_ID)
+    if (link === undefined) {
+      link = {
+          "source": node1,
+          "target": node2,
+          "value": value,
+      }
+      allLinks.set(d.SRC_ID + "-" + d.TARGET_ID, link)
+    } else {
+      link.value += value;
+      continue;
+    }
 
-      simulation = d3.forceSimulation()
-          .force('link', d3.forceLink().id(function(d) { return d.id; }))
-          .force('charge', d3.forceManyBody().strength(function(d, i) {
-            if (d === selectedNode) {
-              return -50;
-            } else if (d.type === "dummy") {
-              return 0;
-            } else if (d.type === "close") {
-              return -1000;
-            } else if (d.type === "far") {
-              return -10;
-            }
-            return d === selectedNode ? -50 : -15;
-          }))
-          .force('center', d3.forceCenter(width / 2, height / 2))
-          .force('collide', d3.forceCollide(25).radius(function(d, i) {
-            if (d.type === "dummy") {
-              return 0;
-            }
-            return 25;
-          }))
-          .force('radial', d3.forceRadial(60).strength(function(d) {
-            if (d.type === "dummy") {
-              return .10;
-            }
-            return 0.1;
-          }))
-
-      updateVisualization()
-  })
-
-
-
-var div = document.getElementById('comment');
-
-div.innerHTML += '<div class="alert success"><span class="closebtn">&times;</span><strong>Success!</strong><br>Loaded Data from ' + years[0].toString() + ' to ' + years[1].toString() + '.</div>';
-setTimeout(
-    function() {
-        div.innerHTML = ''
-    },
-    5000
-);
-
-
-var close = document.getElementsByClassName("closebtn");
-var i;
-
-for (i = 0; i < close.length; i++) {
-  close[i].onclick = function(){
-    var div = this.parentElement;
-    div.style.opacity = "0";
-    setTimeout(function(){ div.style.display = "none"; }, 600);
+    linkGraph.get(d.TARGET_ID).add(link)
+    linkGraph.get(d.SRC_ID).add(link)
   }
-}
 
+
+  Candidate_Tags = Array.from(allNodes.keys()).filter(i => candidates.has(i)).map(function(e, i) {
+    var cand = candidates.get(e);
+    return {'label':cand.CAND_NAME, 'value':e};
+  });
+
+  Committee_Tags = Array.from(allNodes.keys()).filter(i => committees.has(i)).map(function(e, i) {
+    var comm = committees.get(e);
+    return {'label':comm.CMTE_NAME, 'value':e};
+  });
+
+  $( function() {
+    $( "#can_tags" ).autocomplete({
+      minLength: 3,
+      source: Candidate_Tags,
+      select: function(event, ui) {
+        selectCandidate(ui.item.value);
+        $(this).val("");
+        return false;
+      },
+    });
+  });
+  $( function() {
+    $( "#com_tags" ).autocomplete({
+      minLength: 3,
+      source: Committee_Tags,
+      select: function(event, ui) {
+        selectCommittee(ui.item.value);
+        $(this).val("");
+        return false;
+      },
+    });
+  });
+  console.log("done loading")
+
+
+  // For Testing
+  if (allNodes.get(current_id)){
+    selectedNode = allNodes.get(current_id)
+   }
+  else {
+    console.log(allNodes.values().next().value)
+    selectedNode = allNodes.values().next().value
+    if(current_id){
+      var div = document.getElementById('comment');
+      div.innerHTML += '<div class="alert warning"><span class="closebtn">&times;</span><strong>Warning!</strong><br>No Entity with ID:'+current_id+'.</div>';
+    }
+    current_id = ''
+  }
+
+  selectedNode.fx = width / 2;
+  selectedNode.fy = height / 2
+  //selectedNode.group = 2
+
+  simulation = d3.forceSimulation()
+      .force('link', d3.forceLink().id(function(d) { return d.id; }))
+      .force('charge', d3.forceManyBody().strength(function(d, i) {
+        if (d === selectedNode) {
+          return -50;
+        } else if (d.type === "dummy") {
+          return 0;
+        } else if (d.type === "close") {
+          return -1000;
+        } else if (d.type === "far") {
+          return -10;
+        }
+        return d === selectedNode ? -50 : -15;
+      }))
+      .force('center', d3.forceCenter(width / 2, height / 2))
+      .force('collide', d3.forceCollide(25).radius(function(d, i) {
+        if (d.type === "dummy") {
+          return 0;
+        }
+        return 25;
+      }))
+      .force('radial', d3.forceRadial(60).strength(function(d) {
+        if (d.type === "dummy") {
+          return .10;
+        }
+        return 0.1;
+      }))
+
+  updateVisualization()
+
+
+  var div = document.getElementById('comment');
+
+  div.innerHTML += '<div class="alert success"><span class="closebtn">&times;</span><strong>Success!</strong><br>Loaded Data from ' + years[0].toString() + ' to ' + years[1].toString() + '.</div>';
+  setTimeout(
+      function() {
+          div.innerHTML = ''
+      },
+      5000
+  );
+
+
+  var close = document.getElementsByClassName("closebtn");
+  var i;
+
+  for (i = 0; i < close.length; i++) {
+    close[i].onclick = function(){
+      var div = this.parentElement;
+      div.style.opacity = "0";
+      setTimeout(function(){ div.style.display = "none"; }, 600);
+    }
+  }
+  console.log(all_transactions)
 }
 
 
